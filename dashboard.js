@@ -1,6 +1,6 @@
 // ===== CONFIG =====
 // ดึง URL จาก script.js หรือระบุโดยตรง
-const DASHBOARD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqLTI4wc20tw-w8yHwar-pyAPUtiwNkyMcIu4Nc49tSik2tBT9vMPRBiQE77eRPI4F/exec';
+const DASHBOARD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5031kjUETj291aoQHky4LGfAIRiWr1sElym1gCOSPvOK6UcF_5MyKldlirb1bV39w/exec';
 
 // ===== INITIALIZE =====
 document.addEventListener('DOMContentLoaded', () => {
