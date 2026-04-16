@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="ระบบรับฟังความคิดเห็นและข้อเสนอแนะนักศึกษา - พื้นที่เปิดโอกาสให้นักศึกษาสะท้อนปัญหาและเสนอแนวทางพัฒนามหาวิทยาลัย">
+    <title>ระบบรับฟังความคิดเห็นและข้อเสนอแนะนักศึกษา</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- ===== PARTICLES BACKGROUND ===== -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- ===== TOP NAV / LANGUAGE SWITCHER ===== -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <span class="brand-logo">PSU</span>
+            <span class="brand-text">Student Voice</span>
+        </div>
+        <div class="nav-actions">
+            <button class="lang-toggle" onclick="toggleLanguage()">
+                <img id="lang-flag" src="https://flagcdn.com/w20/th.png" width="20" alt="TH">
+                <span id="lang-text">TH / EN</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ===== INTRO PAGE ===== -->
+    <section id="intro-page" class="page active">
+        <div class="intro-container">
+            <div class="intro-badge">
+                <span class="badge-icon">🎓</span>
+                <span class="badge-text">Student Voice Platform</span>
+            </div>
+            <h1 class="intro-title">
+                <span class="title-line" data-i18n="intro-title-1">ระบบรับเรื่องร้องเรียน</span>
+                <span class="title-line title-highlight" data-i18n="intro-title-2">และข้อเสนอแนะนักศึกษา</span>
+            </h1>
+            <p class="intro-description" data-i18n="intro-desc">
+                พื้นที่นี้ถูกสร้างขึ้นเพื่อเปิดโอกาสให้นักศึกษาได้สะท้อนปัญหา<br>
+                เสนอแนวทาง และมีส่วนร่วมในการพัฒนานักวิทยาลัยร่วมกัน
+            </p>
+            <p class="intro-sub-description" data-i18n="intro-sub-desc">
+                ทุกความคิดเห็นของคุณมีความหมาย และจะถูกส่งต่อไปยัง<br>
+                หน่วยงานที่เกี่ยวข้องเพื่อพิจารณาอย่างเหมาะสม
+            </p>
+            <div class="intro-buttons">
+                <button id="btn-start" class="btn-primary" onclick="showPage('form-page')">
+                    <span class="btn-icon">✍️</span>
+                    เริ่มต้นเสนอความคิดเห็น
+                </button>
+                <button class="btn-secondary" onclick="window.location.href='dashboard.html'">
+                    <span class="btn-icon">📊</span>
+                    <span data-i18n="btn-view-dashboard">ดู Dashboard ทั้งหมด</span>
+                </button>
+            </div>
+            <div class="intro-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="0">0</span>
+                    <span class="stat-label">ความคิดเห็นที่ได้รับ</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="0">0</span>
+                    <span class="stat-label">% ตอบกลับแล้ว</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="0" id="stat-done">0</span>
+                    <span class="stat-label" data-i18n="stat-solved">ปัญหาที่แก้ไขแล้ว</span>
+                </div>
+            </div>
+
+            <!-- ===== SUCCESS STORIES (RESOLVED CASES) ===== -->
+            <div class="success-stories-section" id="stories-section">
+                <div class="stories-header">
+                    <h3 class="stories-title" data-i18n="stories-title">✨ ความสำเร็จล่าสุด</h3>
+                    <p class="stories-subtitle" data-i18n="stories-subtitle">เรื่องที่ผ่านการพิจารณาและดำเนินการแก้ไขเรียบร้อยแล้ว</p>
+                </div>
+                <div class="stories-grid" id="stories-grid">
+                    <!-- Stories will be loaded here via JS -->
+                    <div class="story-skeleton"></div>
+                    <div class="story-skeleton"></div>
+                </div>
+            </div>
+
+            <!-- ===== HOME DASHBOARD SUMMARY ===== -->
+            <div class="home-dashboard-summary" id="home-dashboard-chart" style="display: none;">
+                <div class="home-chart-header">
+                    <span class="home-chart-title">📊 สรุปประเภทเรื่องปัจจุบัน</span>
+                </div>
+                <div class="home-chart-container">
+                    <canvas id="homeTypeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ===== STATUS LOOKUP ===== -->
+            <div class="lookup-section">
+                <p class="lookup-title">🔍 <span data-i18n="lookup-title">ตรวจสอบสถานะเรื่องร้องเรียน</span></p>
+                <div class="lookup-input-group">
+                    <input type="text" id="ref-input" class="lookup-input"
+                        placeholder="กรอกหมายเลขอ้างอิง เช่น REF-20260415-0001"
+                        onkeydown="if(event.key==='Enter')lookupStatus()">
+                    <button class="lookup-btn" onclick="lookupStatus()" data-i18n="btn-search">ค้นหา</button>
+                </div>
+                <div id="lookup-result"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FORM PAGE ===== -->
+    <section id="form-page" class="page">
+        <div class="form-wrapper">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="step active" data-step="1">
+                        <div class="step-circle">1</div>
+                        <span class="step-label" data-i18n="step-1">ประเภท</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-circle">2</div>
+                        <span class="step-label" data-i18n="step-2">หน่วยงาน</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-circle">3</div>
+                        <span class="step-label" data-i18n="step-3">รายละเอียด</span>
+                    </div>
+                    <div class="step" data-step="4">
+                        <div class="step-circle">4</div>
+                        <span class="step-label" data-i18n="step-4">แนบไฟล์</span>
+                    </div>
+                    <div class="step" data-step="5">
+                        <div class="step-circle">5</div>
+                        <span class="step-label" data-i18n="step-5">สถานที่</span>
+                    </div>
+                    <div class="step" data-step="6">
+                        <div class="step-circle">6</div>
+                        <span class="step-label" data-i18n="step-6">ความเร่งด่วน</span>
+                    </div>
+                    <div class="step" data-step="7">
+                        <div class="step-circle">7</div>
+                        <span class="step-label" data-i18n="step-7">ตัวตน</span>
+                    </div>
+                </div>
+            </div>
+
+            <form id="feedback-form" onsubmit="return false;">
+                <!-- SECTION 1: ประเภทเรื่อง -->
+                <div class="form-section active" data-section="1">
+                    <div class="section-header">
+                        <span class="section-icon">📋</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-1-title">ประเภทเรื่อง</h2>
+                            <p class="section-subtitle" data-i18n="section-1-subtitle">เลือกประเภทเรื่องที่คุณต้องการเสนอ</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">ประเภทเรื่องที่ต้องการเสนอ <span class="required">*</span></label>
+                        <div class="radio-group" id="topic-type">
+                            <label class="radio-card" for="type-complaint">
+                                <input type="radio" id="type-complaint" name="topicType" value="ข้อร้องเรียน" required>
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">📢</span>
+                                    <span class="radio-text" data-i18n="type-complaint">ข้อร้องเรียน</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="type-suggestion">
+                                <input type="radio" id="type-suggestion" name="topicType" value="ข้อเสนอแนะ">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">💡</span>
+                                    <span class="radio-text" data-i18n="type-suggestion">ข้อเสนอแนะ</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="type-problem">
+                                <input type="radio" id="type-problem" name="topicType" value="แจ้งปัญหา">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">⚠️</span>
+                                    <span class="radio-text" data-i18n="type-problem">แจ้งปัญหา</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="type-other">
+                                <input type="radio" id="type-other" name="topicType" value="อื่น ๆ">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">📝</span>
+                                    <span class="radio-text" data-i18n="type-other">อื่น ๆ</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: หน่วยงาน -->
+                <div class="form-section" data-section="2">
+                    <div class="section-header">
+                        <span class="section-icon">🏛️</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-2-title">หน่วยงานที่เกี่ยวข้อง</h2>
+                            <p class="section-subtitle" data-i18n="section-2-subtitle">เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="department">หน่วยงานที่เกี่ยวข้อง <span
+                                class="required">*</span></label>
+                        <div class="select-wrapper">
+                            <select id="department" name="department" required>
+                                <option value="" disabled selected>-- เลือกหน่วยงาน --</option>
+                                <option value="คณะ">คณะ</option>
+                                <option value="กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่">กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่</option>
+                                <option value="หอพัก">หอพัก</option>
+                                <option value="กองกลาง">กองกลาง</option>
+                                <option value="กองคลัง">กองคลัง</option>
+                                <option value="กองนโยบาย ยุทธศาสตร์ และแผน">กองนโยบาย ยุทธศาสตร์ และแผน</option>
+                                <option value="กองบริหารทรัพยากรบุคคล">กองบริหารทรัพยากรบุคคล</option>
+                                <option value="กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่">กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่</option>
+                                <option value="ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่">ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่</option>
+                                <option value="สภาอาจารย์ วิทยาเขตหาดใหญ่">สภาอาจารย์ วิทยาเขตหาดใหญ่</option>
+                                <option value="สภาพนักงาน วิทยาเขตหาดใหญ่">สภาพนักงาน วิทยาเขตหาดใหญ่</option>
+                                <option value="พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ. ภาคใต้">พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ. ภาคใต้</option>
+                                <option value="ศูนย์กิจการนานาชาติและสื่อสารองค์กร">ศูนย์กิจการนานาชาติและสื่อสารองค์กร</option>
+                                <option value="ศูนย์บริหารจัดการคุณภาพองค์กร">ศูนย์บริหารจัดการคุณภาพองค์กร</option>
+                                <option value="ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม">ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม</option>
+                                <option value="ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี">ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี</option>
+                                <option value="ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์">ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์</option>
+                                <option value="ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์">ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์</option>
+                                <option value="สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์">สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์</option>
+                                <option value="สำนักงานบริหารและจัดการทรัพย์สิน">สำนักงานบริหารและจัดการทรัพย์สิน</option>
+                                <option value="สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา">สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา</option>
+                                <option value="หอประวัติ มหาวิทยาลัยสงขลานครินทร์">หอประวัติ มหาวิทยาลัยสงขลานครินทร์</option>
+                                <option value="อื่น ๆ">อื่น ๆ</option>
+                            </select>
+                            <span class="select-arrow">▾</span>
+                        </div>
+                    </div>
+
+                    <!-- รายชื่อคณะ: ซ่อนไว้ตอนแรก จะโผล่เมื่อเลือก "คณะ" เท่านั้น -->
+                    <div class="field-group" id="faculty-group" style="display: none; margin-top: 1.25rem;">
+                        <label class="field-label" for="faculty">ระบุชื่อคณะ <span class="required">*</span></label>
+                        <div class="select-wrapper">
+                            <select id="faculty" name="faculty">
+                                <option value="" disabled selected>-- เลือกคณะ --</option>
+                                <option value="วิศวกรรมศาสตร์">วิศวกรรมศาสตร์</option>
+                                <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+                                <option value="แพทยศาสตร์">แพทยศาสตร์</option>
+                                <option value="พยาบาลศาสตร์">พยาบาลศาสตร์</option>
+                                <option value="วิทยาการจัดการ">วิทยาการจัดการ</option>
+                                <option value="ทรัพยากรธรรมชาติ">ทรัพยากรธรรมชาติ</option>
+                                <option value="เภสัชศาสตร์">เภสัชศาสตร์</option>
+                                <option value="ทันตแพทยศาสตร์">ทันตแพทยศาสตร์</option>
+                                <option value="อุตสาหกรรมเกษตร">อุตสาหกรรมเกษตร</option>
+                                <option value="ศิลปศาสตร์">ศิลปศาสตร์</option>
+                                <option value="นิติศาสตร์">นิติศาสตร์</option>
+                                <option value="เศรษฐศาสตร์">เศรษฐศาสตร์</option>
+                                <option value="การแพทย์แผนไทย">การแพทย์แผนไทย</option>
+                                <option value="เทคนิคการแพทย์">เทคนิคการแพทย์</option>
+                                <option value="วิทยาลัยนานาชาติ">วิทยาลัยนานาชาติ</option>
+                            </select>
+                            <span class="select-arrow">▾</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: รายละเอียด -->
+                <div class="form-section" data-section="3">
+                    <div class="section-header">
+                        <span class="section-icon">📝</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-3-title">รายละเอียด</h2>
+                            <p class="section-subtitle" data-i18n="section-3-subtitle">กรุณาอธิบายรายละเอียดเรื่องที่ต้องการเสนอ</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="subject">หัวข้อเรื่อง <span class="required">*</span></label>
+                        <input type="text" id="subject" name="subject" class="text-input"
+                            placeholder="เช่น ไฟทางเดินดับบริเวณอ่างเก็บน้ำ" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="details">รายละเอียด <span class="required">*</span></label>
+                        <textarea id="details" name="details" class="textarea-input" rows="6"
+                            placeholder="กรุณาอธิบายรายละเอียด เช่น:&#10;- เกิดขึ้นที่ไหน&#10;- เกิดขึ้นเมื่อไหร่&#10;- ส่งผลกระทบอย่างไร"
+                            required></textarea>
+                        <span class="char-count"><span id="char-count">0</span> / 2000</span>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: แนบไฟล์ -->
+                <div class="form-section" data-section="4">
+                    <div class="section-header">
+                        <span class="section-icon">📎</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-4-title">แนบไฟล์</h2>
+                            <p class="section-subtitle" data-i18n="section-4-subtitle">แนบรูปภาพหรือหลักฐานเพื่อช่วยให้การตรวจสอบรวดเร็วมากขึ้น</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">แนบรูปภาพหรือหลักฐาน</label>
+                        <div class="file-upload-area" id="file-upload-area">
+                            <input type="file" id="file-input" name="files" multiple accept=".jpg,.jpeg,.png,.pdf"
+                                hidden>
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                    <path d="M24 32V16M24 16L18 22M24 16L30 22" stroke="currentColor" stroke-width="2.5"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M8 32V36C8 38.2091 9.79086 40 12 40H36C38.2091 40 40 38.2091 40 36V32"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <p class="upload-text">ลากไฟล์มาวางที่นี่ หรือ <span
+                                    class="upload-link">คลิกเพื่อเลือกไฟล์</span></p>
+                            <p class="upload-hint">รองรับไฟล์ JPG, PNG, PDF (สูงสุด 10MB)</p>
+                        </div>
+                        <div class="file-list" id="file-list"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: สถานที่ -->
+                <div class="form-section" data-section="5">
+                    <div class="section-header">
+                        <span class="section-icon">📍</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-5-title">สถานที่</h2>
+                            <p class="section-subtitle" data-i18n="section-5-subtitle">ระบุสถานที่ที่เกิดเหตุ</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="location">สถานที่เกิดเหตุ <span
+                                class="required">*</span></label>
+                        <input type="text" id="location" name="location" class="text-input"
+                            placeholder="เช่น อาคารกิจกรรม / โรงอาหาร / ลานจอดรถ" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="map-link">ลิงก์พิกัด (ถ้ามี)</label>
+                        <input type="url" id="map-link" name="mapLink" class="text-input"
+                            placeholder="เช่น https://maps.google.com/...">
+                        <span class="field-hint">📌 วางลิงก์ Google Maps เพื่อระบุตำแหน่งที่แน่นอน</span>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: ความเร่งด่วน -->
+                <div class="form-section" data-section="6">
+                    <div class="section-header">
+                        <span class="section-icon">🔔</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-6-title">ระดับความเร่งด่วน</h2>
+                            <p class="section-subtitle" data-i18n="section-6-subtitle">ประเมินระดับความสำคัญของเรื่อง</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">ระดับความสำคัญ <span class="required">*</span></label>
+                        <div class="priority-group" id="priority-group">
+                            <label class="priority-card priority-low" for="priority-low">
+                                <input type="radio" id="priority-low" name="priority" value="ต่ำ" required>
+                                <div class="priority-content">
+                                    <span class="priority-indicator"></span>
+                                    <span class="priority-label" data-i18n="priority-low">ต่ำ</span>
+                                    <span class="priority-desc" data-i18n="priority-low-desc">ไม่เร่งด่วน</span>
+                                </div>
+                            </label>
+                            <label class="priority-card priority-medium" for="priority-medium">
+                                <input type="radio" id="priority-medium" name="priority" value="ปานกลาง">
+                                <div class="priority-content">
+                                    <span class="priority-indicator"></span>
+                                    <span class="priority-label" data-i18n="priority-med">ปานกลาง</span>
+                                    <span class="priority-desc" data-i18n="priority-med-desc">ควรดำเนินการ</span>
+                                </div>
+                            </label>
+                            <label class="priority-card priority-high" for="priority-high">
+                                <input type="radio" id="priority-high" name="priority" value="สูง">
+                                <div class="priority-content">
+                                    <span class="priority-indicator"></span>
+                                    <span class="priority-label" data-i18n="priority-high">สูง</span>
+                                    <span class="priority-desc" data-i18n="priority-high-desc">ต้องการเร่งด่วน</span>
+                                </div>
+                            </label>
+                            <label class="priority-card priority-urgent" for="priority-urgent">
+                                <input type="radio" id="priority-urgent" name="priority" value="เร่งด่วนมาก">
+                                <div class="priority-content">
+                                    <span class="priority-indicator"></span>
+                                    <span class="priority-label" data-i18n="priority-urgent">เร่งด่วนมาก 🚨</span>
+                                    <span class="priority-desc" data-i18n="priority-urgent-desc">ต้องแก้ไขทันที</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 7: ตัวตน -->
+                <div class="form-section" data-section="7">
+                    <div class="section-header">
+                        <span class="section-icon">🔒</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-7-title">การเปิดเผยตัวตน</h2>
+                            <p class="section-subtitle" data-i18n="section-7-subtitle">เลือกว่าต้องการเปิดเผยตัวตนหรือไม่</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">ต้องการเปิดเผยตัวตนหรือไม่ <span class="required">*</span></label>
+                        <div class="identity-group" id="identity-group">
+                            <label class="identity-card" for="identity-anonymous">
+                                <input type="radio" id="identity-anonymous" name="identity" value="ไม่เปิดเผยตัวตน"
+                                    required>
+                                <div class="identity-content">
+                                    <span class="identity-icon">🕵️</span>
+                                    <div>
+                                        <span class="identity-label" data-i18n="id-anon">ไม่เปิดเผยตัวตน</span>
+                                        <span class="identity-desc" data-i18n="id-anon-desc">ข้อมูลของคุณจะถูกเก็บเป็นความลับ</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="identity-card" for="identity-reveal">
+                                <input type="radio" id="identity-reveal" name="identity" value="เปิดเผย">
+                                <div class="identity-content">
+                                    <span class="identity-icon">👤</span>
+                                    <div>
+                                        <span class="identity-label" data-i18n="id-reveal">เปิดเผยตัวตน</span>
+                                        <span class="identity-desc" data-i18n="id-reveal-desc">ระบุชื่อและช่องทางติดต่อ</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- อีเมลสำหรับรับการแจ้งเตือน -->
+                    <div class="field-group" style="margin-top: 1.5rem;">
+                        <label class="field-label" data-i18n="label-email">อีเมลสำหรับรับผลการดำเนินการ (ไม่บังคับ)</label>
+                        <div class="input-with-icon">
+                            <i class="far fa-envelope"></i>
+                            <input type="email" id="user-email" name="email" class="text-input"
+                                placeholder="example@psu.ac.th">
+                        </div>
+                        <span class="field-hint" data-i18n="hint-email">เราจะส่งหมายเลขอ้างอิงและผลการตรวจสอบไปให้อีเมลนี้ครับ</span>
+                    </div>
+
+                    <!-- SECTION 8: ข้อมูลผู้แจ้ง (Conditional) -->
+                    <div class="conditional-section" id="identity-fields" style="display: none;">
+                        <div class="conditional-divider">
+                            <span>ข้อมูลผู้แจ้ง</span>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="full-name">ชื่อ-นามสกุล <span
+                                    class="required">*</span></label>
+                            <input type="text" id="full-name" name="fullName" class="text-input"
+                                placeholder="กรอกชื่อ-นามสกุล">
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="contact">ช่องทางติดต่อ (Email / Line) <span
+                                    class="required">*</span></label>
+                            <input type="text" id="contact" name="contact" class="text-input"
+                                placeholder="กรอก Email หรือ Line ID">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="form-navigation">
+                    <button type="button" class="btn-secondary" id="btn-prev" onclick="prevSection()"
+                        style="visibility: hidden;">
+                        <span class="btn-arrow">←</span> <span data-i18n="btn-prev">ย้อนกลับ</span>
+                    </button>
+                    <button type="button" class="btn-primary" id="btn-next" onclick="nextSection()">
+                        <span data-i18n="btn-next">ถัดไป</span> <span class="btn-arrow">→</span>
+                    </button>
+                    <button type="button" class="btn-submit" id="btn-submit" onclick="submitForm()"
+                        style="display: none;">
+                        <span class="btn-icon">📤</span> <span data-i18n="btn-submit">ส่งข้อมูล</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- ===== SUCCESS PAGE ===== -->
+    <section id="success-page" class="page">
+        <div class="success-container">
+            <div class="success-checkmark">
+                <svg class="checkmark-svg" viewBox="0 0 120 120">
+                    <circle class="checkmark-circle" cx="60" cy="60" r="54" fill="none" stroke-width="4" />
+                    <path class="checkmark-path" d="M30 62 L50 82 L90 42" fill="none" stroke-width="5"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <h2 class="success-title" data-i18n="success-title">ขอบคุณสำหรับความคิดเห็นของคุณ 🙏</h2>
+            <p class="success-message" data-i18n="success-message">
+                เรื่องของคุณได้รับการบันทึกเรียบร้อยแล้ว<br>
+                และจะถูกส่งต่อไปยังหน่วยงานที่เกี่ยวข้องเพื่อพิจารณาดำเนินการต่อไป
+            </p>
+            <div class="success-ref">
+                <span class="ref-label" data-i18n="success-ref-label">หมายเลขอ้างอิง</span>
+                <span class="ref-number" id="ref-number">REF-20260415-0001</span>
+            </div>
+
+            <!-- เลิกใช้ส่วน QR Code ตามความต้องการของผู้ใช้ -->
+            <p class="success-footer" data-i18n="success-footer">ร่วมกันสร้างมหาวิทยาลัยที่ดีขึ้นไปพร้อมกัน 💙</p>
+            <div class="success-buttons">
+                <button class="btn-primary" onclick="resetForm()">
+                    <span class="btn-icon">🔄</span> <span data-i18n="btn-reset">ส่งเรื่องใหม่</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script src="script.js?v=1.2"></script>
+
+    <!-- Reverted: Admin System Removed -->
+</body>
+
+</html>
