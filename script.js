@@ -1,6 +1,6 @@
 // ===== CONFIG =====
 // ⚠️ ใส่ URL ของ Google Apps Script Web App ที่ Deploy แล้วตรงนี้
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/library/d/1HYAyV-pxuelaTxBwTt30pHawCBqHrqIkJUQ6cnk6SCy4ghOLIbDNA1Iq/34';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5031kjUETj291aoQHky4LGfAIRiWr1sElym1gCOSPvOK6UcF_5MyKldlirb1bV39w/exec';
 // ตัวอย่าง: 'https://script.google.com/macros/s/AKfycbx.../exec'
 
 // ===== STATE =====
