@@ -9,7 +9,8 @@
     <title>ระบบรับฟังความคิดเห็นและข้อเสนอแนะนักศึกษา</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -48,7 +49,7 @@
             </h1>
             <p class="intro-description" data-i18n="intro-desc">
                 พื้นที่นี้ถูกสร้างขึ้นเพื่อเปิดโอกาสให้นักศึกษาได้สะท้อนปัญหา<br>
-                เสนอแนวทาง และมีส่วนร่วมในการพัฒนานักวิทยาลัยร่วมกัน
+                เสนอแนวทาง และมีส่วนร่วมในการพัฒนามหาวิทยาลัยร่วมกัน
             </p>
             <p class="intro-sub-description" data-i18n="intro-sub-desc">
                 ทุกความคิดเห็นของคุณมีความหมาย และจะถูกส่งต่อไปยัง<br>
@@ -85,7 +86,8 @@
             <div class="success-stories-section" id="stories-section">
                 <div class="stories-header">
                     <h3 class="stories-title" data-i18n="stories-title">✨ ความสำเร็จล่าสุด</h3>
-                    <p class="stories-subtitle" data-i18n="stories-subtitle">เรื่องที่ผ่านการพิจารณาและดำเนินการแก้ไขเรียบร้อยแล้ว</p>
+                    <p class="stories-subtitle" data-i18n="stories-subtitle">
+                        เรื่องที่ผ่านการพิจารณาและดำเนินการแก้ไขเรียบร้อยแล้ว</p>
                 </div>
                 <div class="stories-grid" id="stories-grid">
                     <!-- Stories will be loaded here via JS -->
@@ -165,7 +167,8 @@
                         <span class="section-icon">📋</span>
                         <div>
                             <h2 class="section-title" data-i18n="section-1-title">ประเภทเรื่อง</h2>
-                            <p class="section-subtitle" data-i18n="section-1-subtitle">เลือกประเภทเรื่องที่คุณต้องการเสนอ</p>
+                            <p class="section-subtitle" data-i18n="section-1-subtitle">
+                                เลือกประเภทเรื่องที่คุณต้องการเสนอ</p>
                         </div>
                     </div>
                     <div class="field-group">
@@ -213,7 +216,8 @@
                         <span class="section-icon">🏛️</span>
                         <div>
                             <h2 class="section-title" data-i18n="section-2-title">หน่วยงานที่เกี่ยวข้อง</h2>
-                            <p class="section-subtitle" data-i18n="section-2-subtitle">เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ</p>
+                            <p class="section-subtitle" data-i18n="section-2-subtitle">
+                                เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ</p>
                         </div>
                     </div>
                     <div class="field-group">
@@ -222,31 +226,46 @@
                         <div class="select-wrapper">
                             <select id="department" name="department" required>
                                 <option value="" disabled selected>-- เลือกหน่วยงาน --</option>
-                                <option value="กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่">กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่</option>
+                                <option value="กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่">กองกายภาพและสิ่งแวดล้อม
+                                    วิทยาเขตหาดใหญ่</option>
                                 <option value="กองคลัง">กองคลัง</option>
                                 <option value="กองนโยบาย ยุทธศาสตร์ และแผน">กองนโยบาย ยุทธศาสตร์ และแผน</option>
                                 <option value="กองบริหารทรัพยากรบุคคล">กองบริหารทรัพยากรบุคคล</option>
-                                <option value="กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่">กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่</option>
+                                <option value="กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่">
+                                    กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่</option>
                                 <option value="คณะ">คณะ</option>
                                 <option value="ชมรมฝ่ายกีฬา">ชมรมฝ่ายกีฬา</option>
                                 <option value="ชมรมฝ่ายบำเพ็ญประโยชน์">ชมรมฝ่ายบำเพ็ญประโยชน์</option>
                                 <option value="ชมรมฝ่ายวิชาการ">ชมรมฝ่ายวิชาการ</option>
                                 <option value="ชมรมฝ่ายศิลป์">ชมรมฝ่ายศิลป์</option>
-                                <option value="พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ. ภาคใต้">พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ. ภาคใต้</option>
-                                <option value="ศูนย์กิจการนานาชาติและสื่อสารองค์กร">ศูนย์กิจการนานาชาติและสื่อสารองค์กร</option>
-                                <option value="ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่">ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่</option>
-                                <option value="ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม">ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม</option>
+                                <option
+                                    value="พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ. ภาคใต้">
+                                    พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ.
+                                    ภาคใต้</option>
+                                <option value="ศูนย์กิจการนานาชาติและสื่อสารองค์กร">ศูนย์กิจการนานาชาติและสื่อสารองค์กร
+                                </option>
+                                <option value="ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่">ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่
+                                </option>
+                                <option value="ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม">
+                                    ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม</option>
                                 <option value="ศูนย์บริหารจัดการคุณภาพองค์กร">ศูนย์บริหารจัดการคุณภาพองค์กร</option>
-                                <option value="ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี">ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี</option>
-                                <option value="ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์">ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์</option>
-                                <option value="ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์">ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์</option>
+                                <option value="ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี">
+                                    ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี</option>
+                                <option value="ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์">ศูนย์อาสาสมัคร
+                                    มหาวิทยาลัยสงขลานครินทร์</option>
+                                <option value="ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์">ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์
+                                </option>
                                 <option value="สภานักศึกษา">สภานักศึกษา</option>
                                 <option value="สภาพนักงาน วิทยาเขตหาดใหญ่">สภาพนักงาน วิทยาเขตหาดใหญ่</option>
                                 <option value="สภาอาจารย์ วิทยาเขตหาดใหญ่">สภาอาจารย์ วิทยาเขตหาดใหญ่</option>
-                                <option value="สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์">สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์</option>
-                                <option value="สำนักงานบริหารและจัดการทรัพย์สิน">สำนักงานบริหารและจัดการทรัพย์สิน</option>
-                                <option value="สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา">สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา</option>
-                                <option value="หอประวัติ มหาวิทยาลัยสงขลานครินทร์">หอประวัติ มหาวิทยาลัยสงขลานครินทร์</option>
+                                <option value="สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์">สำนักงานกฏหมาย
+                                    มหาวิทยาลัยสงขลานครินทร์</option>
+                                <option value="สำนักงานบริหารและจัดการทรัพย์สิน">สำนักงานบริหารและจัดการทรัพย์สิน
+                                </option>
+                                <option value="สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา">
+                                    สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา</option>
+                                <option value="หอประวัติ มหาวิทยาลัยสงขลานครินทร์">หอประวัติ มหาวิทยาลัยสงขลานครินทร์
+                                </option>
                                 <option value="หอพัก">หอพัก</option>
                                 <option value="องค์การนักศึกษา">องค์การนักศึกษา</option>
                                 <option value="อื่น ๆ">อื่น ๆ</option>
@@ -288,7 +307,8 @@
                         <span class="section-icon">📝</span>
                         <div>
                             <h2 class="section-title" data-i18n="section-3-title">รายละเอียด</h2>
-                            <p class="section-subtitle" data-i18n="section-3-subtitle">กรุณาอธิบายรายละเอียดเรื่องที่ต้องการเสนอ</p>
+                            <p class="section-subtitle" data-i18n="section-3-subtitle">
+                                กรุณาอธิบายรายละเอียดเรื่องที่ต้องการเสนอ</p>
                         </div>
                     </div>
                     <div class="field-group">
@@ -311,7 +331,8 @@
                         <span class="section-icon">📎</span>
                         <div>
                             <h2 class="section-title" data-i18n="section-4-title">แนบไฟล์</h2>
-                            <p class="section-subtitle" data-i18n="section-4-subtitle">แนบรูปภาพหรือหลักฐานเพื่อช่วยให้การตรวจสอบรวดเร็วมากขึ้น</p>
+                            <p class="section-subtitle" data-i18n="section-4-subtitle">
+                                แนบรูปภาพหรือหลักฐานเพื่อช่วยให้การตรวจสอบรวดเร็วมากขึ้น</p>
                         </div>
                     </div>
                     <div class="field-group">
@@ -365,7 +386,8 @@
                         <span class="section-icon">🔔</span>
                         <div>
                             <h2 class="section-title" data-i18n="section-6-title">ระดับความเร่งด่วน</h2>
-                            <p class="section-subtitle" data-i18n="section-6-subtitle">ประเมินระดับความสำคัญของเรื่อง</p>
+                            <p class="section-subtitle" data-i18n="section-6-subtitle">ประเมินระดับความสำคัญของเรื่อง
+                            </p>
                         </div>
                     </div>
                     <div class="field-group">
@@ -413,7 +435,8 @@
                         <span class="section-icon">🔒</span>
                         <div>
                             <h2 class="section-title" data-i18n="section-7-title">การเปิดเผยตัวตน</h2>
-                            <p class="section-subtitle" data-i18n="section-7-subtitle">เลือกว่าต้องการเปิดเผยตัวตนหรือไม่</p>
+                            <p class="section-subtitle" data-i18n="section-7-subtitle">
+                                เลือกว่าต้องการเปิดเผยตัวตนหรือไม่</p>
                         </div>
                     </div>
                     <div class="field-group">
@@ -426,7 +449,8 @@
                                     <span class="identity-icon">🕵️</span>
                                     <div>
                                         <span class="identity-label" data-i18n="id-anon">ไม่เปิดเผยตัวตน</span>
-                                        <span class="identity-desc" data-i18n="id-anon-desc">ข้อมูลของคุณจะถูกเก็บเป็นความลับ</span>
+                                        <span class="identity-desc"
+                                            data-i18n="id-anon-desc">ข้อมูลของคุณจะถูกเก็บเป็นความลับ</span>
                                     </div>
                                 </div>
                             </label>
@@ -436,7 +460,8 @@
                                     <span class="identity-icon">👤</span>
                                     <div>
                                         <span class="identity-label" data-i18n="id-reveal">เปิดเผยตัวตน</span>
-                                        <span class="identity-desc" data-i18n="id-reveal-desc">ระบุชื่อและช่องทางติดต่อ</span>
+                                        <span class="identity-desc"
+                                            data-i18n="id-reveal-desc">ระบุชื่อและช่องทางติดต่อ</span>
                                     </div>
                                 </div>
                             </label>
@@ -445,13 +470,15 @@
 
                     <!-- อีเมลสำหรับรับการแจ้งเตือน -->
                     <div class="field-group" style="margin-top: 1.5rem;">
-                        <label class="field-label" data-i18n="label-email">อีเมลสำหรับรับผลการดำเนินการ (ไม่บังคับ)</label>
+                        <label class="field-label" data-i18n="label-email">อีเมลสำหรับรับผลการดำเนินการ
+                            (ไม่บังคับ)</label>
                         <div class="input-with-icon">
                             <i class="far fa-envelope"></i>
                             <input type="email" id="user-email" name="email" class="text-input"
                                 placeholder="example@psu.ac.th">
                         </div>
-                        <span class="field-hint" data-i18n="hint-email">เราจะส่งหมายเลขอ้างอิงและผลการตรวจสอบไปให้อีเมลนี้ครับ</span>
+                        <span class="field-hint"
+                            data-i18n="hint-email">เราจะส่งหมายเลขอ้างอิงและผลการตรวจสอบไปให้อีเมลนี้ครับ</span>
                     </div>
 
                     <!-- SECTION 8: ข้อมูลผู้แจ้ง (Conditional) -->

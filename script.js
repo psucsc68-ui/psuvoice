@@ -244,7 +244,7 @@ async function loadLiveStats() {
             const homeChart = document.getElementById('home-dashboard-chart');
             if (homeChart && stats.total > 0) {
                 homeChart.style.display = 'block';
-                renderHomeChart(stats.typeCounts);
+                renderHomeChart(stats.types);
             }
 
             // Restart counters with new data
