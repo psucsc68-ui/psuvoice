@@ -496,6 +496,16 @@ body {
     gap: 12px;
 }
 
+.category-group {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+@media (max-width: 640px) {
+    .category-group {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 .radio-card, .priority-card, .identity-card {
     position: relative;
     cursor: pointer;

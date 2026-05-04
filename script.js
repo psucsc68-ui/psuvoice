@@ -5,7 +5,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwau0VA3IxHtRHn
 
 // ===== STATE =====
 let currentSection = 1;
-const totalSections = 7;
+const totalSections = 8;
 let uploadedFiles = [];
 let currentLanguage = 'th';
 
@@ -23,14 +23,16 @@ const translations = {
         'stories-subtitle': 'เรื่องที่ผ่านการพิจารณาและดำเนินการแก้ไขเรียบร้อยแล้ว',
         'lookup-title': 'ตรวจสอบสถานะเรื่องร้องเรียน',
         'btn-search': 'ค้นหา',
-        'step-1': 'ประเภท', 'step-2': 'หน่วยงาน', 'step-3': 'รายละเอียด', 'step-4': 'แนบไฟล์', 'step-5': 'สถานที่', 'step-6': 'ความเร่งด่วน', 'step-7': 'ตัวตน',
+        'step-1': 'ประเภท', 'step-2': 'หมวดหมู่', 'step-3': 'หน่วยงาน', 'step-4': 'รายละเอียด', 'step-5': 'แนบไฟล์', 'step-6': 'สถานที่', 'step-7': 'ความเร่งด่วน', 'step-8': 'ตัวตน',
         'section-1-title': 'ประเภทเรื่อง', 'section-1-subtitle': 'เลือกประเภทเรื่องที่คุณต้องการเสนอ',
-        'section-2-title': 'หน่วยงานที่เกี่ยวข้อง', 'section-2-subtitle': 'เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ',
-        'section-3-title': 'รายละเอียด', 'section-3-subtitle': 'กรุณาอธิบายรายละเอียดเรื่องที่ต้องการเสนอ',
-        'section-4-title': 'แนบไฟล์', 'section-4-subtitle': 'แนบรูปภาพหรือหลักฐานเพื่อช่วยให้การตรวจสอบรวดเร็วมากขึ้น',
-        'section-5-title': 'สถานที่', 'section-5-subtitle': 'ระบุสถานที่ที่เกิดเหตุ',
-        'section-6-title': 'ระดับความเร่งด่วน', 'section-6-subtitle': 'ประเมินระดับความสำคัญของเรื่อง',
-        'section-7-title': 'การเปิดเผยตัวตน', 'section-7-subtitle': 'เลือกว่าต้องการเปิดเผยตัวตนหรือไม่',
+        'section-2-title': 'หมวดหมู่', 'section-2-subtitle': 'เลือกหมวดหมู่ที่เกี่ยวข้องกับเรื่องของคุณ',
+        'cat-welfare': 'ด้านสวัสดิการและคุณภาพชีวิตนักศึกษา', 'cat-activity': 'ด้านกิจกรรมและพัฒนานักศึกษา', 'cat-academic': 'ด้านวิชาการและการเรียน', 'cat-safety': 'ด้านความปลอดภัยและสิ่งแวดล้อม', 'cat-relation': 'ด้านความสัมพันธ์และพฤติกรรมบุคคล', 'cat-other': 'ด้านอื่นๆ',
+        'section-3-title': 'หน่วยงานที่เกี่ยวข้อง', 'section-3-subtitle': 'เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ',
+        'section-4-title': 'รายละเอียด', 'section-4-subtitle': 'กรุณาอธิบายรายละเอียดเรื่องที่ต้องการเสนอ',
+        'section-5-title': 'แนบไฟล์', 'section-5-subtitle': 'แนบรูปภาพหรือหลักฐานเพื่อช่วยให้การตรวจสอบรวดเร็วมากขึ้น',
+        'section-6-title': 'สถานที่', 'section-6-subtitle': 'ระบุสถานที่ที่เกิดเหตุ',
+        'section-7-title': 'ระดับความเร่งด่วน', 'section-7-subtitle': 'ประเมินระดับความสำคัญของเรื่อง',
+        'section-8-title': 'การเปิดเผยตัวตน', 'section-8-subtitle': 'เลือกว่าต้องการเปิดเผยตัวตนหรือไม่',
         'btn-prev': 'ย้อนกลับ', 'btn-next': 'ถัดไป', 'btn-submit': 'ส่งข้อมูล',
         'label-email': 'อีเมลสำหรับรับผลการดำเนินการ (ไม่บังคับ)',
         'hint-email': 'เราจะส่งหมายเลขอ้างอิงและผลการตรวจสอบไปให้อีเมลนี้ครับ',
@@ -42,12 +44,25 @@ const translations = {
         'success-footer': 'ร่วมกันสร้างมหาวิทยาลัยที่ดีขึ้นไปพร้อมกัน 💙',
         'btn-reset': 'ส่งเรื่องใหม่',
         'type-complaint': 'ข้อร้องเรียน', 'type-suggestion': 'ข้อเสนอแนะ', 'type-problem': 'แจ้งปัญหา', 'type-other': 'อื่น ๆ',
+        'label-topic-type': 'ประเภทเรื่องที่ต้องการเสนอ หากไม่ทราบให้กด อื่น ๆ',
+        'label-category': 'หมวดหมู่ด้านที่เกี่ยวข้อง หากไม่ทราบให้กด อื่น ๆ',
+        'label-department': 'หน่วยงานที่เกี่ยวข้อง หากไม่ทราบให้กด อื่น ๆ',
+        'label-faculty': 'ระบุชื่อคณะ',
+        'label-subject': 'หัวข้อเรื่อง',
+        'label-details': 'รายละเอียด',
+        'label-attach': 'แนบรูปภาพหรือหลักฐาน',
+        'upload-text': 'ลากไฟล์มาวางที่นี่ หรือ คลิกเพื่อเลือกไฟล์',
+        'upload-hint': 'รองรับไฟล์ JPG, PNG, PDF (สูงสุด 10MB)',
+        'label-location': 'สถานที่เกิดเหตุ',
+        'label-map': 'ลิงก์พิกัด (ถ้ามี)',
+        'hint-map': '📌 วางลิงก์ Google Maps เพื่อระบุตำแหน่งที่แน่นอน',
+        'label-priority': 'ระดับความสำคัญ',
+        'label-identity': 'ต้องการเปิดเผยตัวตนหรือไม่',
         'priority-low': 'ต่ำ', 'priority-low-desc': 'ไม่เร่งด่วน',
         'priority-med': 'ปานกลาง', 'priority-med-desc': 'ควรดำเนินการ',
         'priority-high': 'สูง', 'priority-high-desc': 'ต้องการเร่งด่วน',
         'priority-urgent': 'เร่งด่วนมาก 🚨', 'priority-urgent-desc': 'ต้องแก้ไขทันที',
         'id-anon': 'ไม่เปิดเผยตัวตน', 'id-anon-desc': 'ข้อมูลของคุณจะถูกเก็บเป็นความลับ',
-        'id-reveal': 'เปิดเผยตัวตน', 'id-reveal-desc': 'ระบุชื่อและช่องทางติดต่อ',
         'id-reveal': 'เปิดเผยตัวตน', 'id-reveal-desc': 'ระบุชื่อและช่องทางติดต่อ'
     },
     en: {
@@ -62,14 +77,16 @@ const translations = {
         'stories-subtitle': 'Complaints that have been considered and resolved.',
         'lookup-title': 'Track Complaint Status',
         'btn-search': 'Search',
-        'step-1': 'Type', 'step-2': 'Dept', 'step-3': 'Details', 'step-4': 'Files', 'step-5': 'Location', 'step-6': 'Priority', 'step-7': 'Identity',
+        'step-1': 'Type', 'step-2': 'Category', 'step-3': 'Dept', 'step-4': 'Details', 'step-5': 'Files', 'step-6': 'Location', 'step-7': 'Priority', 'step-8': 'Identity',
         'section-1-title': 'Topic Type', 'section-1-subtitle': 'Select the type of feedback',
-        'section-2-title': 'Related Department', 'section-2-subtitle': 'Select the department involved',
-        'section-3-title': 'Details', 'section-3-subtitle': 'Please describe your concern',
-        'section-4-title': 'Attach Files', 'section-4-subtitle': 'Attach photos or evidence for faster verification',
-        'section-5-title': 'Location', 'section-5-subtitle': 'Where did this happen?',
-        'section-6-title': 'Urgency Level', 'section-6-subtitle': 'Assess the priority of this matter',
-        'section-7-title': 'Identity Disclosure', 'section-7-subtitle': 'Choose whether to reveal your identity',
+        'section-2-title': 'Category', 'section-2-subtitle': 'Select the category related to your issue',
+        'cat-welfare': 'Student Welfare & Quality of Life', 'cat-activity': 'Student Activities & Development', 'cat-academic': 'Academics & Learning', 'cat-safety': 'Safety & Environment', 'cat-relation': 'Relationships & Personal Behavior', 'cat-other': 'Others',
+        'section-3-title': 'Related Department', 'section-3-subtitle': 'Select the department involved',
+        'section-4-title': 'Details', 'section-4-subtitle': 'Please describe your concern',
+        'section-5-title': 'Attach Files', 'section-5-subtitle': 'Attach photos or evidence for faster verification',
+        'section-6-title': 'Location', 'section-6-subtitle': 'Where did this happen?',
+        'section-7-title': 'Urgency Level', 'section-7-subtitle': 'Assess the priority of this matter',
+        'section-8-title': 'Identity Disclosure', 'section-8-subtitle': 'Choose whether to reveal your identity',
         'btn-prev': 'Back', 'btn-next': 'Next', 'btn-submit': 'Submit',
         'label-email': 'Notification Email (Optional)',
         'hint-email': 'We will send the reference number and results to this email.',
@@ -81,6 +98,20 @@ const translations = {
         'success-footer': 'Building a better university together 💙',
         'btn-reset': 'New Submission',
         'type-complaint': 'Complaint', 'type-suggestion': 'Suggestion', 'type-problem': 'Report Issue', 'type-other': 'Other',
+        'label-topic-type': 'Select the type of your issue. If unsure, choose Other.',
+        'label-category': 'Select the related category. If unsure, choose Others.',
+        'label-department': 'Select the related department. If unsure, choose Others.',
+        'label-faculty': 'Specify faculty name',
+        'label-subject': 'Subject',
+        'label-details': 'Details',
+        'label-attach': 'Attach photos or evidence',
+        'upload-text': 'Drag files here, or click to select files',
+        'upload-hint': 'Supports JPG, PNG, PDF (max 10MB)',
+        'label-location': 'Incident location',
+        'label-map': 'Map link (optional)',
+        'hint-map': '📌 Paste a Google Maps link to pinpoint the exact location',
+        'label-priority': 'Priority level',
+        'label-identity': 'Would you like to reveal your identity?',
         'priority-low': 'Low', 'priority-low-desc': 'Not urgent',
         'priority-med': 'Medium', 'priority-med-desc': 'Should proceed',
         'priority-high': 'High', 'priority-high-desc': 'Need urgency',
@@ -185,9 +216,93 @@ function applyLanguage(lang) {
     const flag = document.getElementById('lang-flag');
     if (flag) flag.src = lang === 'th' ? 'https://flagcdn.com/w20/th.png' : 'https://flagcdn.com/w20/gb.png';
 
-    // Update placeholders if needed
+    // Update placeholders
     const refInput = document.getElementById('ref-input');
-    if (refInput) refInput.placeholder = lang === 'th' ? 'กรอกหมายเลขอ้างอิง...' : 'Enter reference number...';
+    if (refInput) refInput.placeholder = lang === 'th' ? 'กรอกหมายเลขอ้างอิง เช่น REF-20260415-0001' : 'Enter reference number e.g. REF-20260415-0001';
+
+    const subjectInput = document.getElementById('subject');
+    if (subjectInput) subjectInput.placeholder = lang === 'th' ? 'เช่น ไฟทางเดินดับบริเวณอ่างเก็บน้ำ' : 'e.g. Walkway lights broken near reservoir';
+
+    const detailsInput = document.getElementById('details');
+    if (detailsInput) detailsInput.placeholder = lang === 'th'
+        ? 'กรุณาอธิบายรายละเอียด เช่น:\n- เกิดขึ้นที่ไหน\n- เกิดขึ้นเมื่อไหร่\n- ส่งผลกระทบอย่างไร'
+        : 'Please describe in detail:\n- Where did it happen?\n- When did it happen?\n- What is the impact?';
+
+    const locationInput = document.getElementById('location');
+    if (locationInput) locationInput.placeholder = lang === 'th' ? 'เช่น อาคารกิจกรรม / โรงอาหาร / ลานจอดรถ' : 'e.g. Activity Building / Canteen / Parking Lot';
+
+    const mapInput = document.getElementById('map-link');
+    if (mapInput) mapInput.placeholder = lang === 'th' ? 'เช่น https://maps.google.com/...' : 'e.g. https://maps.google.com/...';
+
+    const emailInput = document.getElementById('user-email');
+    if (emailInput) emailInput.placeholder = lang === 'th' ? 'example@psu.ac.th' : 'example@psu.ac.th';
+
+    // Translate department dropdown options
+    const deptSelect = document.getElementById('department');
+    if (deptSelect) {
+        const deptMap = {
+            '': { th: '-- เลือกหน่วยงาน --', en: '-- Select Department --' },
+            'กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่': { th: 'กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่', en: 'Physical & Environment Division (Hat Yai)' },
+            'กองคลัง': { th: 'กองคลัง', en: 'Finance Division' },
+            'กองนโยบาย ยุทธศาสตร์ และแผน': { th: 'กองนโยบาย ยุทธศาสตร์ และแผน', en: 'Policy, Strategy & Planning Division' },
+            'กองบริหารทรัพยากรบุคคล': { th: 'กองบริหารทรัพยากรบุคคล', en: 'Human Resources Division' },
+            'กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่': { th: 'กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่', en: 'Student Development & Alumni (Hat Yai)' },
+            'คณะ': { th: 'คณะ', en: 'Faculty' },
+            'ชมรมฝ่ายกีฬา': { th: 'ชมรมฝ่ายกีฬา', en: 'Sports Club' },
+            'ชมรมฝ่ายบำเพ็ญประโยชน์': { th: 'ชมรมฝ่ายบำเพ็ญประโยชน์', en: 'Community Service Club' },
+            'ชมรมฝ่ายวิชาการ': { th: 'ชมรมฝ่ายวิชาการ', en: 'Academic Club' },
+            'ชมรมฝ่ายศิลป์': { th: 'ชมรมฝ่ายศิลป์', en: 'Arts Club' },
+            'พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ. ภาคใต้': { th: 'พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารี', en: 'Natural History Museum' },
+            'ศูนย์กิจการนานาชาติและสื่อสารองค์กร': { th: 'ศูนย์กิจการนานาชาติและสื่อสารองค์กร', en: 'International Affairs & Communication Center' },
+            'ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่': { th: 'ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่', en: 'Sports & Health Center (Hat Yai)' },
+            'ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม': { th: 'ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม', en: 'Safety & Occupational Health Center' },
+            'ศูนย์บริหารจัดการคุณภาพองค์กร': { th: 'ศูนย์บริหารจัดการคุณภาพองค์กร', en: 'Quality Management Center' },
+            'ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี': { th: 'ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี', en: 'International Convention Center' },
+            'ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์': { th: 'ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์', en: 'PSU Volunteer Center' },
+            'ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์': { th: 'ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์', en: 'ASEAN Studies Center' },
+            'สภานักศึกษา': { th: 'สภานักศึกษา องค์การนักศึกษา', en: 'Student Council' },
+            'สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์': { th: 'สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์', en: 'PSU Legal Office' },
+            'สำนักงานบริหารและจัดการทรัพย์สิน': { th: 'สำนักงานบริหารและจัดการทรัพย์สิน', en: 'Asset Management Office' },
+            'สำนักนวัตกรมดิจิทัลและระบบอัจฉริยะ': { th: 'สำนักนวัตกรมดิจิทัลและระบบอัจฉริยะ', en: 'Digital Innovation & Smart Systems' },
+            'สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร': { th: 'สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร', en: 'Learning Resources Center (Library)' },
+            'สำนักงานการศึกษาและนวัตกรรมการเรียนรู้(ฝ่ายทะเบียนและประมวลผล)': { th: 'สำนักงานการศึกษาและนวัตกรรมการเรียนรู้(ฝ่ายทะเบียนและประมวลผล)', en: 'Education & Learning Innovation (Registrar)' },
+            'หอประวัติ มหาวิทยาลัยสงขลานครินทร์': { th: 'หอประวัติ มหาวิทยาลัยสงขลานครินทร์', en: 'PSU History Hall' },
+            'หอพัก': { th: 'หอพักนักศึกษา', en: 'Student Dormitory' },
+            'องค์การนักศึกษา': { th: 'องค์การบริหาร องค์การนักศึกษา', en: 'Student Organization' },
+            'อื่น ๆ': { th: 'อื่น ๆ', en: 'Others' }
+        };
+        Array.from(deptSelect.options).forEach(opt => {
+            const mapping = deptMap[opt.value];
+            if (mapping) opt.textContent = mapping[lang];
+        });
+    }
+
+    // Translate faculty dropdown options
+    const facSelect = document.getElementById('faculty');
+    if (facSelect) {
+        const facMap = {
+            '': { th: '-- เลือกคณะ --', en: '-- Select Faculty --' },
+            'วิศวกรรมศาสตร์': { th: 'วิศวกรรมศาสตร์', en: 'Engineering' },
+            'วิทยาศาสตร์': { th: 'วิทยาศาสตร์', en: 'Science' },
+            'แพทยศาสตร์': { th: 'แพทยศาสตร์', en: 'Medicine' },
+            'พยาบาลศาสตร์': { th: 'พยาบาลศาสตร์', en: 'Nursing' },
+            'วิทยาการจัดการ': { th: 'วิทยาการจัดการ', en: 'Management Sciences' },
+            'ทรัพยากรธรรมชาติ': { th: 'ทรัพยากรธรรมชาติ', en: 'Natural Resources' },
+            'เภสัชศาสตร์': { th: 'เภสัชศาสตร์', en: 'Pharmaceutical Sciences' },
+            'ทันตแพทยศาสตร์': { th: 'ทันตแพทยศาสตร์', en: 'Dentistry' },
+            'อุตสาหกรรมเกษตร': { th: 'อุตสาหกรรมเกษตร', en: 'Agro-Industry' },
+            'ศิลปศาสตร์': { th: 'ศิลปศาสตร์', en: 'Liberal Arts' },
+            'นิติศาสตร์': { th: 'นิติศาสตร์', en: 'Law' },
+            'เศรษฐศาสตร์': { th: 'เศรษฐศาสตร์', en: 'Economics' },
+            'การแพทย์แผนไทย': { th: 'การแพทย์แผนไทย', en: 'Traditional Thai Medicine' },
+            'เทคนิคการแพทย์': { th: 'เทคนิคการแพทย์', en: 'Medical Technology' },
+            'วิทยาลัยนานาชาติ': { th: 'วิทยาลัยนานาชาติ', en: 'International College' }
+        };
+        Array.from(facSelect.options).forEach(opt => {
+            const mapping = facMap[opt.value];
+            if (mapping) opt.textContent = mapping[lang];
+        });
+    }
 }
 
 
@@ -370,6 +485,14 @@ function validateSection(sectionNum) {
             break;
         }
         case 2: {
+            const selected = document.querySelector('input[name="category"]:checked');
+            if (!selected) {
+                showError('category-group', 'กรุณาเลือกหมวดหมู่');
+                isValid = false;
+            }
+            break;
+        }
+        case 3: {
             const dept = document.getElementById('department');
             if (!dept.value) {
                 dept.classList.add('field-error');
@@ -378,7 +501,7 @@ function validateSection(sectionNum) {
             }
             break;
         }
-        case 3: {
+        case 4: {
             const subject = document.getElementById('subject');
             const details = document.getElementById('details');
             if (!subject.value.trim()) {
@@ -393,9 +516,9 @@ function validateSection(sectionNum) {
             }
             break;
         }
-        case 4:
+        case 5:
             break;
-        case 5: {
+        case 6: {
             const location = document.getElementById('location');
             if (!location.value.trim()) {
                 location.classList.add('field-error');
@@ -404,7 +527,7 @@ function validateSection(sectionNum) {
             }
             break;
         }
-        case 6: {
+        case 7: {
             const selected = document.querySelector('input[name="priority"]:checked');
             if (!selected) {
                 showError('priority-group', 'กรุณาเลือกระดับความสำคัญ');
@@ -412,7 +535,7 @@ function validateSection(sectionNum) {
             }
             break;
         }
-        case 7: {
+        case 8: {
             const identity = document.querySelector('input[name="identity"]:checked');
             if (!identity) {
                 showError('identity-group', 'กรุณาเลือกการเปิดเผยตัวตน');
@@ -757,6 +880,7 @@ async function submitForm() {
     const formData = {
         id: refNum,
         topicType: document.querySelector('input[name="topicType"]:checked')?.value,
+        category: document.querySelector('input[name="category"]:checked')?.value,
         department: (function () {
             const dept = document.getElementById('department').value;
             const faculty = document.getElementById('faculty').value;

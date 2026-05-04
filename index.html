@@ -48,7 +48,7 @@
                 <span class="title-line title-highlight" data-i18n="intro-title-2">และข้อเสนอแนะนักศึกษา</span>
             </h1>
             <p class="intro-description" data-i18n="intro-desc">
-                พื้นที่นี้ถูกสร้างขึ้นเพื่อเปิดโอกาสให้นักศึกษาได้สะท้อนปัญหา<br>
+                พื้นที่ๆ สร้างขึ้นเพื่อเปิดโอกาสให้นักศึกษาได้สะท้อนปัญหา<br>
                 เสนอแนวทาง และมีส่วนร่วมในการพัฒนามหาวิทยาลัยร่วมกัน
             </p>
             <p class="intro-sub-description" data-i18n="intro-sub-desc">
@@ -58,7 +58,7 @@
             <div class="intro-buttons">
                 <button id="btn-start" class="btn-primary" onclick="showPage('form-page')">
                     <span class="btn-icon">✍️</span>
-                    เริ่มต้นเสนอความคิดเห็น
+                    <span data-i18n="btn-start">เริ่มต้นเสนอความคิดเห็น</span>
                 </button>
                 <button class="btn-secondary" onclick="window.location.href='dashboard.html'">
                     <span class="btn-icon">📊</span>
@@ -135,27 +135,31 @@
                     </div>
                     <div class="step" data-step="2">
                         <div class="step-circle">2</div>
-                        <span class="step-label" data-i18n="step-2">หน่วยงาน</span>
+                        <span class="step-label" data-i18n="step-2">หมวดหมู่</span>
                     </div>
                     <div class="step" data-step="3">
                         <div class="step-circle">3</div>
-                        <span class="step-label" data-i18n="step-3">รายละเอียด</span>
+                        <span class="step-label" data-i18n="step-3">หน่วยงาน</span>
                     </div>
                     <div class="step" data-step="4">
                         <div class="step-circle">4</div>
-                        <span class="step-label" data-i18n="step-4">แนบไฟล์</span>
+                        <span class="step-label" data-i18n="step-4">รายละเอียด</span>
                     </div>
                     <div class="step" data-step="5">
                         <div class="step-circle">5</div>
-                        <span class="step-label" data-i18n="step-5">สถานที่</span>
+                        <span class="step-label" data-i18n="step-5">แนบไฟล์</span>
                     </div>
                     <div class="step" data-step="6">
                         <div class="step-circle">6</div>
-                        <span class="step-label" data-i18n="step-6">ความเร่งด่วน</span>
+                        <span class="step-label" data-i18n="step-6">สถานที่</span>
                     </div>
                     <div class="step" data-step="7">
                         <div class="step-circle">7</div>
-                        <span class="step-label" data-i18n="step-7">ตัวตน</span>
+                        <span class="step-label" data-i18n="step-7">ความเร่งด่วน</span>
+                    </div>
+                    <div class="step" data-step="8">
+                        <div class="step-circle">8</div>
+                        <span class="step-label" data-i18n="step-8">ตัวตน</span>
                     </div>
                 </div>
             </div>
@@ -172,13 +176,16 @@
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">ประเภทเรื่องที่ต้องการเสนอ <span class="required">*</span></label>
+                        <label class="field-label"><span data-i18n="label-topic-type">ประเภทเรื่องที่ต้องการเสนอ
+                                หากไม่ทราบให้กด อื่น ๆ</span> <span class="required">*</span></label>
                         <div class="radio-group" id="topic-type">
                             <label class="radio-card" for="type-complaint">
                                 <input type="radio" id="type-complaint" name="topicType" value="ข้อร้องเรียน" required>
                                 <div class="radio-card-content">
                                     <span class="radio-icon">📢</span>
-                                    <span class="radio-text" data-i18n="type-complaint">ข้อร้องเรียน</span>
+                                    <span class="radio-text"
+                                        data-i18n="type-complaint">ข้อร้องเรียน<br>ความพึ่งพอใจต่อการเข้ารับบริการต่างๆของมหาวิทยาลัย
+                                        </p>
                                 </div>
                                 <div class="radio-check">✓</div>
                             </label>
@@ -186,7 +193,8 @@
                                 <input type="radio" id="type-suggestion" name="topicType" value="ข้อเสนอแนะ">
                                 <div class="radio-card-content">
                                     <span class="radio-icon">💡</span>
-                                    <span class="radio-text" data-i18n="type-suggestion">ข้อเสนอแนะ</span>
+                                    <span class="radio-text"
+                                        data-i18n="type-suggestion">ข้อเสนอแนะ<br>ความคิดเห็นเพื่อปรับปรุงแก้ไข</p>
                                 </div>
                                 <div class="radio-check">✓</div>
                             </label>
@@ -194,7 +202,9 @@
                                 <input type="radio" id="type-problem" name="topicType" value="แจ้งปัญหา">
                                 <div class="radio-card-content">
                                     <span class="radio-icon">⚠️</span>
-                                    <span class="radio-text" data-i18n="type-problem">แจ้งปัญหา</span>
+                                    <span class="radio-text"
+                                        data-i18n="type-problem">แจ้งปัญหา<br>แจ้งเรื่องที่เป็นอุปสรรคต่อการใช้ชีวิตในมหาวิทยาลัย
+                                        </p>
                                 </div>
                                 <div class="radio-check">✓</div>
                             </label>
@@ -210,18 +220,93 @@
                     </div>
                 </div>
 
-                <!-- SECTION 2: หน่วยงาน -->
+                <!-- SECTION 2: หมวดหมู่ -->
                 <div class="form-section" data-section="2">
                     <div class="section-header">
-                        <span class="section-icon">🏛️</span>
+                        <span class="section-icon">🏷️</span>
                         <div>
-                            <h2 class="section-title" data-i18n="section-2-title">หน่วยงานที่เกี่ยวข้อง</h2>
+                            <h2 class="section-title" data-i18n="section-2-title">หมวดหมู่</h2>
                             <p class="section-subtitle" data-i18n="section-2-subtitle">
-                                เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ</p>
+                                เลือกหมวดหมู่ที่เกี่ยวข้องกับเรื่องของคุณ </p>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label" for="department">หน่วยงานที่เกี่ยวข้อง <span
+                        <label class="field-label"><span data-i18n="label-category">หมวดหมู่ด้านที่เกี่ยวข้อง
+                                หากไม่ทราบให้กด อื่น ๆ</span> <span class="required">*</span></label>
+                        <div class="radio-group category-group" id="category-group">
+                            <label class="radio-card" for="cat-welfare">
+                                <input type="radio" id="cat-welfare" name="category"
+                                    value="ด้านสวัสดิการและคุณภาพชีวิตนักศึกษา" required>
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">💛</span>
+                                    <span class="radio-text"
+                                        data-i18n="cat-welfare">ด้านสวัสดิการ<br>และคุณภาพชีวิตนักศึกษา</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="cat-activity">
+                                <input type="radio" id="cat-activity" name="category"
+                                    value="ด้านกิจกรรมและพัฒนานักศึกษา">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">🎯</span>
+                                    <span class="radio-text"
+                                        data-i18n="cat-activity">ด้านกิจกรรม<br>และพัฒนานักศึกษา</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="cat-academic">
+                                <input type="radio" id="cat-academic" name="category" value="ด้านวิชาการและการเรียน">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">📚</span>
+                                    <span class="radio-text" data-i18n="cat-academic">ด้านวิชาการ<br>และการเรียน</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="cat-safety">
+                                <input type="radio" id="cat-safety" name="category"
+                                    value="ด้านความปลอดภัยและสิ่งแวดล้อม">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">🛡️</span>
+                                    <span class="radio-text"
+                                        data-i18n="cat-safety">ด้านความปลอดภัย<br>และสิ่งแวดล้อม</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="cat-relation">
+                                <input type="radio" id="cat-relation" name="category"
+                                    value="ด้านความสัมพันธ์และพฤติกรรมบุคคล">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">🤝</span>
+                                    <span class="radio-text"
+                                        data-i18n="cat-relation">ด้านความสัมพันธ์<br>และพฤติกรรมบุคคล</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                            <label class="radio-card" for="cat-other">
+                                <input type="radio" id="cat-other" name="category" value="ด้านอื่นๆ">
+                                <div class="radio-card-content">
+                                    <span class="radio-icon">📝</span>
+                                    <span class="radio-text" data-i18n="cat-other">ด้านอื่นๆ</span>
+                                </div>
+                                <div class="radio-check">✓</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: หน่วยงาน -->
+                <div class="form-section" data-section="3">
+                    <div class="section-header">
+                        <span class="section-icon">🏛️</span>
+                        <div>
+                            <h2 class="section-title" data-i18n="section-3-title">หน่วยงานที่เกี่ยวข้อง</h2>
+                            <p class="section-subtitle" data-i18n="section-3-subtitle">
+                                เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ </p>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="department"><span
+                                data-i18n="label-department">หน่วยงานที่เกี่ยวข้อง หากไม่ทราบให้กด อื่น ๆ</span> <span
                                 class="required">*</span></label>
                         <div class="select-wrapper">
                             <select id="department" name="department" required>
@@ -230,7 +315,6 @@
                                     วิทยาเขตหาดใหญ่</option>
                                 <option value="กองคลัง">กองคลัง</option>
                                 <option value="กองนโยบาย ยุทธศาสตร์ และแผน">กองนโยบาย ยุทธศาสตร์ และแผน</option>
-                                <option value="กองบริหารทรัพยากรบุคคล">กองบริหารทรัพยากรบุคคล</option>
                                 <option value="กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่">
                                     กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่</option>
                                 <option value="คณะ">คณะ</option>
@@ -255,19 +339,21 @@
                                     มหาวิทยาลัยสงขลานครินทร์</option>
                                 <option value="ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์">ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์
                                 </option>
-                                <option value="สภานักศึกษา">สภานักศึกษา</option>
-                                <option value="สภาพนักงาน วิทยาเขตหาดใหญ่">สภาพนักงาน วิทยาเขตหาดใหญ่</option>
-                                <option value="สภาอาจารย์ วิทยาเขตหาดใหญ่">สภาอาจารย์ วิทยาเขตหาดใหญ่</option>
+                                <option value="สภานักศึกษา">สภานักศึกษา องค์การนักศึกษา</option>
                                 <option value="สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์">สำนักงานกฏหมาย
                                     มหาวิทยาลัยสงขลานครินทร์</option>
                                 <option value="สำนักงานบริหารและจัดการทรัพย์สิน">สำนักงานบริหารและจัดการทรัพย์สิน
                                 </option>
-                                <option value="สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา">
-                                    สำนักงานส่งเสริมการประชุมและนิทรรศการจังหวัดสงขลา</option>
+                                <option value="สำนักนวัตกรมดิจิทัลและระบบอัจฉริยะ">สำนักนวัตกรมดิจิทัลและระบบอัจฉริยะ
+                                </option>
+                                <option value="สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร">
+                                    สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร </option>
+                                <option value="สำนักงานการศึกษาและนวัตกรรมการเรียนรู้(ฝ่ายทะเบียนและประมวลผล)">
+                                    สำนักงานการศึกษาและนวัตกรรมการเรียนรู้(ฝ่ายทะเบียนและประมวลผล)</option>
                                 <option value="หอประวัติ มหาวิทยาลัยสงขลานครินทร์">หอประวัติ มหาวิทยาลัยสงขลานครินทร์
                                 </option>
-                                <option value="หอพัก">หอพัก</option>
-                                <option value="องค์การนักศึกษา">องค์การนักศึกษา</option>
+                                <option value="หอพัก">หอพักนักศึกษา</option>
+                                <option value="องค์การนักศึกษา">องค์การบริหาร องค์การนักศึกษา</option>
                                 <option value="อื่น ๆ">อื่น ๆ</option>
                             </select>
                             <span class="select-arrow">▾</span>
@@ -276,7 +362,8 @@
 
                     <!-- รายชื่อคณะ: ซ่อนไว้ตอนแรก จะโผล่เมื่อเลือก "คณะ" เท่านั้น -->
                     <div class="field-group" id="faculty-group" style="display: none; margin-top: 1.25rem;">
-                        <label class="field-label" for="faculty">ระบุชื่อคณะ <span class="required">*</span></label>
+                        <label class="field-label" for="faculty"><span data-i18n="label-faculty">ระบุชื่อคณะ</span>
+                            <span class="required">*</span></label>
                         <div class="select-wrapper">
                             <select id="faculty" name="faculty">
                                 <option value="" disabled selected>-- เลือกคณะ --</option>
@@ -301,23 +388,25 @@
                     </div>
                 </div>
 
-                <!-- SECTION 3: รายละเอียด -->
-                <div class="form-section" data-section="3">
+                <!-- SECTION 4: รายละเอียด -->
+                <div class="form-section" data-section="4">
                     <div class="section-header">
                         <span class="section-icon">📝</span>
                         <div>
-                            <h2 class="section-title" data-i18n="section-3-title">รายละเอียด</h2>
-                            <p class="section-subtitle" data-i18n="section-3-subtitle">
+                            <h2 class="section-title" data-i18n="section-4-title">รายละเอียด</h2>
+                            <p class="section-subtitle" data-i18n="section-4-subtitle">
                                 กรุณาอธิบายรายละเอียดเรื่องที่ต้องการเสนอ</p>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label" for="subject">หัวข้อเรื่อง <span class="required">*</span></label>
+                        <label class="field-label" for="subject"><span data-i18n="label-subject">หัวข้อเรื่อง</span>
+                            <span class="required">*</span></label>
                         <input type="text" id="subject" name="subject" class="text-input"
                             placeholder="เช่น ไฟทางเดินดับบริเวณอ่างเก็บน้ำ" required>
                     </div>
                     <div class="field-group">
-                        <label class="field-label" for="details">รายละเอียด <span class="required">*</span></label>
+                        <label class="field-label" for="details"><span data-i18n="label-details">รายละเอียด</span> <span
+                                class="required">*</span></label>
                         <textarea id="details" name="details" class="textarea-input" rows="6"
                             placeholder="กรุณาอธิบายรายละเอียด เช่น:&#10;- เกิดขึ้นที่ไหน&#10;- เกิดขึ้นเมื่อไหร่&#10;- ส่งผลกระทบอย่างไร"
                             required></textarea>
@@ -325,18 +414,18 @@
                     </div>
                 </div>
 
-                <!-- SECTION 4: แนบไฟล์ -->
-                <div class="form-section" data-section="4">
+                <!-- SECTION 5: แนบไฟล์ -->
+                <div class="form-section" data-section="5">
                     <div class="section-header">
                         <span class="section-icon">📎</span>
                         <div>
-                            <h2 class="section-title" data-i18n="section-4-title">แนบไฟล์</h2>
-                            <p class="section-subtitle" data-i18n="section-4-subtitle">
+                            <h2 class="section-title" data-i18n="section-5-title">แนบไฟล์</h2>
+                            <p class="section-subtitle" data-i18n="section-5-subtitle">
                                 แนบรูปภาพหรือหลักฐานเพื่อช่วยให้การตรวจสอบรวดเร็วมากขึ้น</p>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">แนบรูปภาพหรือหลักฐาน</label>
+                        <label class="field-label" data-i18n="label-attach">แนบรูปภาพหรือหลักฐาน</label>
                         <div class="file-upload-area" id="file-upload-area">
                             <input type="file" id="file-input" name="files" multiple accept=".jpg,.jpeg,.png,.pdf"
                                 hidden>
@@ -349,49 +438,52 @@
                                         stroke-linejoin="round" />
                                 </svg>
                             </div>
-                            <p class="upload-text">ลากไฟล์มาวางที่นี่ หรือ <span
+                            <p class="upload-text" data-i18n="upload-text">ลากไฟล์มาวางที่นี่ หรือ <span
                                     class="upload-link">คลิกเพื่อเลือกไฟล์</span></p>
-                            <p class="upload-hint">รองรับไฟล์ JPG, PNG, PDF (สูงสุด 10MB)</p>
+                            <p class="upload-hint" data-i18n="upload-hint">รองรับไฟล์ JPG, PNG, PDF (สูงสุด 10MB)</p>
                         </div>
                         <div class="file-list" id="file-list"></div>
                     </div>
                 </div>
 
-                <!-- SECTION 5: สถานที่ -->
-                <div class="form-section" data-section="5">
+                <!-- SECTION 6: สถานที่ -->
+                <div class="form-section" data-section="6">
                     <div class="section-header">
                         <span class="section-icon">📍</span>
                         <div>
-                            <h2 class="section-title" data-i18n="section-5-title">สถานที่</h2>
-                            <p class="section-subtitle" data-i18n="section-5-subtitle">ระบุสถานที่ที่เกิดเหตุ</p>
+                            <h2 class="section-title" data-i18n="section-6-title">สถานที่</h2>
+                            <p class="section-subtitle" data-i18n="section-6-subtitle">ระบุสถานที่ที่เกิดเหตุ</p>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label" for="location">สถานที่เกิดเหตุ <span
+                        <label class="field-label" for="location"><span
+                                data-i18n="label-location">สถานที่เกิดเหตุ</span> <span
                                 class="required">*</span></label>
                         <input type="text" id="location" name="location" class="text-input"
                             placeholder="เช่น อาคารกิจกรรม / โรงอาหาร / ลานจอดรถ" required>
                     </div>
                     <div class="field-group">
-                        <label class="field-label" for="map-link">ลิงก์พิกัด (ถ้ามี)</label>
+                        <label class="field-label" for="map-link" data-i18n="label-map">ลิงก์พิกัด (ถ้ามี)</label>
                         <input type="url" id="map-link" name="mapLink" class="text-input"
                             placeholder="เช่น https://maps.google.com/...">
-                        <span class="field-hint">📌 วางลิงก์ Google Maps เพื่อระบุตำแหน่งที่แน่นอน</span>
+                        <span class="field-hint" data-i18n="hint-map">📌 วางลิงก์ Google Maps
+                            เพื่อระบุตำแหน่งที่แน่นอน</span>
                     </div>
                 </div>
 
-                <!-- SECTION 6: ความเร่งด่วน -->
-                <div class="form-section" data-section="6">
+                <!-- SECTION 7: ความเร่งด่วน -->
+                <div class="form-section" data-section="7">
                     <div class="section-header">
                         <span class="section-icon">🔔</span>
                         <div>
-                            <h2 class="section-title" data-i18n="section-6-title">ระดับความเร่งด่วน</h2>
-                            <p class="section-subtitle" data-i18n="section-6-subtitle">ประเมินระดับความสำคัญของเรื่อง
+                            <h2 class="section-title" data-i18n="section-7-title">ระดับความเร่งด่วน</h2>
+                            <p class="section-subtitle" data-i18n="section-7-subtitle">ประเมินระดับความสำคัญของเรื่อง
                             </p>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">ระดับความสำคัญ <span class="required">*</span></label>
+                        <label class="field-label"><span data-i18n="label-priority">ระดับความสำคัญ</span> <span
+                                class="required">*</span></label>
                         <div class="priority-group" id="priority-group">
                             <label class="priority-card priority-low" for="priority-low">
                                 <input type="radio" id="priority-low" name="priority" value="ต่ำ" required>
@@ -429,18 +521,19 @@
                     </div>
                 </div>
 
-                <!-- SECTION 7: ตัวตน -->
-                <div class="form-section" data-section="7">
+                <!-- SECTION 8: ตัวตน -->
+                <div class="form-section" data-section="8">
                     <div class="section-header">
                         <span class="section-icon">🔒</span>
                         <div>
-                            <h2 class="section-title" data-i18n="section-7-title">การเปิดเผยตัวตน</h2>
-                            <p class="section-subtitle" data-i18n="section-7-subtitle">
+                            <h2 class="section-title" data-i18n="section-8-title">การเปิดเผยตัวตน</h2>
+                            <p class="section-subtitle" data-i18n="section-8-subtitle">
                                 เลือกว่าต้องการเปิดเผยตัวตนหรือไม่</p>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">ต้องการเปิดเผยตัวตนหรือไม่ <span class="required">*</span></label>
+                        <label class="field-label"><span data-i18n="label-identity">ต้องการเปิดเผยตัวตนหรือไม่</span>
+                            <span class="required">*</span></label>
                         <div class="identity-group" id="identity-group">
                             <label class="identity-card" for="identity-anonymous">
                                 <input type="radio" id="identity-anonymous" name="identity" value="ไม่เปิดเผยตัวตน"
@@ -481,7 +574,7 @@
                             data-i18n="hint-email">เราจะส่งหมายเลขอ้างอิงและผลการตรวจสอบไปให้อีเมลนี้ครับ</span>
                     </div>
 
-                    <!-- SECTION 8: ข้อมูลผู้แจ้ง (Conditional) -->
+                    <!-- SECTION 9: ข้อมูลผู้แจ้ง (Conditional) -->
                     <div class="conditional-section" id="identity-fields" style="display: none;">
                         <div class="conditional-divider">
                             <span>ข้อมูลผู้แจ้ง</span>
