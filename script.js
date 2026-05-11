@@ -1,6 +1,6 @@
 // ===== CONFIG =====
 // ⚠️ ใส่ URL ของ Google Apps Script Web App ที่ Deploy แล้วตรงนี้
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwau0VA3IxHtRHn4SYIcbKEOvn8k4JwSa2hpAEwrT70qTltdtR845KlctkU7mmYLR-a/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyd40850A5LKZELolC6GbrCRpvPldq69ZhPyh0fLST20ZyhnF6CNsnJXKQddzn2m6We/exec';
 // ตัวอย่าง: 'https://script.google.com/macros/s/AKfycbx.../exec'
 
 // ===== STATE =====
@@ -344,16 +344,10 @@ async function loadLiveStats() {
 
             // Update the data-count attributes
             const totalEl = document.querySelector('.stat-item:nth-child(1) .stat-number');
-            const percentEl = document.querySelector('.stat-item:nth-child(3) .stat-number');
-            const doneEl = document.querySelector('.stat-item:nth-child(5) .stat-number');
+            const doneEl = document.getElementById('stat-done');
 
             if (totalEl) totalEl.setAttribute('data-count', stats.total);
             if (doneEl) doneEl.setAttribute('data-count', stats.done);
-
-            if (percentEl && stats.total > 0) {
-                const percent = Math.round(((stats.inProgress + stats.done) / stats.total) * 100);
-                percentEl.setAttribute('data-count', percent);
-            }
 
             // Show and render home chart if data exists
             const homeChart = document.getElementById('home-dashboard-chart');
@@ -1039,11 +1033,18 @@ function renderLookupResult(data, container) {
     }).join(' ')}
                     </div>
                 </div>` : ''}
-                ${data.adminNote ? `
-                <div class="lookup-row lookup-note">
-                    <span class="lookup-label">💬 หมายเหตุจากเจ้าหน้าที่</span>
-                    <span class="lookup-value">${data.adminNote}</span>
-                </div>` : ''}
+                <div class="lookup-council-reply ${data.councilReply ? 'has-reply' : 'no-reply'}">
+                    <div class="council-reply-header">
+                        <span class="council-reply-icon">💬</span>
+                        <span class="council-reply-title">การตอบกลับจากพี่สภา</span>
+                    </div>
+                    <div class="council-reply-body">
+                        ${data.councilReply 
+                            ? `<p class="council-reply-text">${data.councilReply}</p>`
+                            : `<p class="council-reply-waiting">⏳ ยังไม่มีการตอบกลับ — กรุณารอพี่สภาตรวจสอบและตอบกลับนะคะ/ครับ</p>`
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     `;

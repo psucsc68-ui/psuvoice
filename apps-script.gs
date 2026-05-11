@@ -9,7 +9,7 @@ function initSheet() {
   const headers = [
     'หมายเลขอ้างอิง', 'วันที่-เวลา', 'ประเภทเรื่อง', 'หน่วยงาน', 'หัวข้อ', 
     'รายละเอียด', 'สถานที่', 'ลิงก์พิกัด', 'ระดับความสำคัญ', 'เปิดเผยตัวตน', 
-    'ชื่อ-นามสกุล', 'ช่องทางติดต่อ', 'ไฟล์แนบ', 'สถานะ'
+    'ชื่อ-นามสกุล', 'ช่องทางติดต่อ', 'ไฟล์แนบ', 'สถานะ', 'การตอบกลับจากพี่สภา', 'โชว์ผลงาน'
   ];
 
   if (!sheet) {
@@ -74,7 +74,18 @@ function doGet(e) {
       if (rows[i][0].toString().toUpperCase() === refId) {
         return ContentService.createTextOutput(JSON.stringify({
           success: true, 
-          data: { status: rows[i][13], subject: rows[i][4], date: rows[i][1] }
+          data: {
+            id: rows[i][0],
+            date: rows[i][1],
+            topicType: rows[i][2],
+            department: rows[i][3],
+            subject: rows[i][4],
+            location: rows[i][6],
+            priority: rows[i][8],
+            files: rows[i][12],
+            status: rows[i][13],
+            councilReply: rows[i][14] || ''
+          }
         })).setMimeType(ContentService.MimeType.JSON);
       }
     }
@@ -102,7 +113,7 @@ function doGet(e) {
     
     // ดึง 5 รายการล่าสุดที่เสร็จแล้ว (Success Stories)
     stats.recentResolved = data
-      .filter(r => r[13] === 'เสร็จสิ้น')
+      .filter(r => (r[15] || '').toString().trim() === 'โชว์')
       .slice(-5)
       .map(r => ({ id: r[0], subject: r[4], date: r[1] }));
 

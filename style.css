@@ -1025,7 +1025,67 @@ body {
     width: 100%;
 }
 
-/* ===== HOME DASHBOARD SUMMARY (MINIMAL) ===== */
+/* ===== COUNCIL REPLY SECTION ===== */
+.lookup-council-reply {
+    margin: 16px 0 8px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    animation: fadeSlideIn 0.5s ease both;
+}
+
+.lookup-council-reply.has-reply {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    border: 1px solid #bfdbfe;
+    border-left: 4px solid var(--primary-light);
+}
+
+.lookup-council-reply.no-reply {
+    background: #fefce8;
+    border: 1px dashed #fde68a;
+}
+
+.council-reply-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px 0;
+}
+
+.council-reply-icon {
+    font-size: 18px;
+}
+
+.council-reply-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.3px;
+}
+
+.lookup-council-reply.no-reply .council-reply-title {
+    color: #92400e;
+}
+
+.council-reply-body {
+    padding: 10px 16px 14px;
+}
+
+.council-reply-text {
+    font-size: 15px;
+    color: var(--text-dark);
+    line-height: 1.7;
+    font-weight: 500;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.council-reply-waiting {
+    font-size: 13px;
+    color: #92400e;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
 .home-dashboard-summary {
     width: 100%;
     max-width: 500px;
