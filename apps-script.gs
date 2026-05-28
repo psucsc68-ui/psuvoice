@@ -1,5 +1,8 @@
-// ===== Google Apps Script (Version: SUPER-STABLE / No-Drive) =====
-// เน้นความเสถียรในการบันทึกข้อมูลเข้า Sheet โดยตัดระบบ Drive ออกชั่วคราวเพื่อหาจุดผิดพลาด
+// ===== Google Apps Script (Version: DRIVE-ENABLED) =====
+// เปิดใช้งานระบบอัปโหลดไฟล์ไปยัง Google Drive แล้ว
+
+// 📁 โฟลเดอร์ Google Drive สำหรับเก็บไฟล์แนบ
+const DRIVE_FOLDER_ID = '1pYZ_1892K62gCxQIh__5jms0MxrxEXVY';
 
 function initSheet() {
   const SHEET_NAME = 'ข้อมูลร้องเรียน'; 
@@ -23,6 +26,44 @@ function initSheet() {
   return sheet;
 }
 
+// ===== ฟังก์ชันบันทึกไฟล์ลง Google Drive =====
+function saveFilesToDrive(fileDataArray, refId) {
+  if (!fileDataArray || fileDataArray.length === 0) {
+    return 'ไม่มีไฟล์แนบ';
+  }
+
+  try {
+    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    const fileLinks = [];
+
+    for (let i = 0; i < fileDataArray.length; i++) {
+      const fileObj = fileDataArray[i];
+      
+      // ดึงข้อมูล base64 ออกมา (ตัด prefix "data:image/jpeg;base64," ออก)
+      const base64Data = fileObj.base64.split(',')[1];
+      if (!base64Data) continue;
+
+      // แปลง base64 เป็น Blob
+      const decoded = Utilities.base64Decode(base64Data);
+      const blob = Utilities.newBlob(decoded, fileObj.type, refId + '_' + fileObj.name);
+
+      // บันทึกไฟล์ลง Drive
+      const file = folder.createFile(blob);
+      
+      // ตั้งค่าสิทธิ์ให้ทุกคนที่มีลิงก์ดูได้
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+      // เก็บลิงก์สำหรับดูไฟล์
+      fileLinks.push(file.getUrl());
+    }
+
+    return fileLinks.length > 0 ? fileLinks.join(', ') : 'ไม่มีไฟล์แนบ';
+  } catch (error) {
+    Logger.log('Error saving files to Drive: ' + error.toString());
+    return 'อัปโหลดไม่สำเร็จ: ' + error.message;
+  }
+}
+
 function doPost(e) {
   try {
     let data;
@@ -36,7 +77,10 @@ function doPost(e) {
     const sheet = initSheet();
     const thaiDate = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
     
-    // บันทึกลง Sheet (ข้ามเรื่องรูปภาพไปก่อนเพื่อความเสถียร)
+    // บันทึกไฟล์แนบลง Google Drive (ถ้ามี)
+    const fileLinks = saveFilesToDrive(data.fileData || [], data.id || 'UNKNOWN');
+
+    // บันทึกลง Sheet
     sheet.appendRow([
       data.id, 
       thaiDate, 
@@ -50,7 +94,7 @@ function doPost(e) {
       data.identity || '-', 
       data.fullName || 'ไม่เปิดเผย', 
       data.contact || '-',
-      'ไม่มีไฟล์ (ปิดชั่วคราว)', 
+      fileLinks, 
       'รอดำเนินการ'
     ]);
     

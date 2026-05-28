@@ -1,6 +1,6 @@
 // ===== CONFIG =====
 // ⚠️ ใส่ URL ของ Google Apps Script Web App ที่ Deploy แล้วตรงนี้
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyd40850A5LKZELolC6GbrCRpvPldq69ZhPyh0fLST20ZyhnF6CNsnJXKQddzn2m6We/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyh_ouXE982PHgdG8BXLwEjTRl9LCF-XQhc9KocRfxDaXapEnubpcO1jE6GsS77Qp3p/exec';
 // ตัวอย่าง: 'https://script.google.com/macros/s/AKfycbx.../exec'
 
 // ===== STATE =====
@@ -805,22 +805,33 @@ async function sendToGoogleSheets(formData) {
     }
 
     try {
-        // ใช้ fetch แบบ no-cors เพื่อให้ข้อมูลไปถึง Google Sheets แน่นอนที่สุด
-        // (ถึงแม้เราจะอ่านค่าตอบกลับไม่ได้ แต่ข้อมูลจะบันทึกลงชีทครับ)
-        await fetch(APPS_SCRIPT_URL, {
+        // ส่งข้อมูลแบบ cors + application/json เพื่อให้ Apps Script รับ body ได้ถูกต้อง
+        // (รวมถึงข้อมูลไฟล์แนบ base64 ที่จะถูกบันทึกลง Google Drive)
+        const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: {
-                'Content-Type': 'text/plain'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(formData)
         });
 
-        // ในโหมด no-cors เราถือว่าสำเร็จถ้าไม่มี Error ระหว่างส่ง
-        return { success: true };
+        const result = await response.json();
+        return result;
     } catch (error) {
         console.error('❌ Error sending to Google Sheets:', error);
-        return { success: false, error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' };
+        // Fallback: ลองส่งแบบ no-cors (ข้อมูลจะไปถึงแต่อ่าน response ไม่ได้)
+        try {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(formData)
+            });
+            return { success: true, fallback: true };
+        } catch (fallbackError) {
+            console.error('❌ Fallback also failed:', fallbackError);
+            return { success: false, error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' };
+        }
     }
 }
 
