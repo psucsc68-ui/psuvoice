@@ -1,311 +1,131 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | ระบบรับฟังความคิดเห็นนักศึกษา</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>PSU Student Voice Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        psu: {
+                            blue: '#0A2A66',
+                            light: '#1B4596',
+                            accent: '#F3F4F6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.05);
-            --dashboard-bg: #f8fafc;
-            --primary-gradient: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-        }
-
-        body {
-            background: var(--dashboard-bg);
-            color: #1e293b;
-            font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
-            overflow-x: hidden;
-            margin: 0;
-        }
-
-        .dashboard-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 80px 24px 40px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 48px;
-            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .dashboard-meta h1 {
-            font-size: 2.75rem;
-            color: #0f172a;
-            margin-bottom: 12px;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .dashboard-meta p {
-            color: #64748b;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .btn-back {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 24px;
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            color: #1e293b;
-            border-radius: 14px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .btn-back:hover {
-            border-color: #2563eb;
-            color: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 24px;
-            margin-bottom: 48px;
-        }
-
-        .stat-card {
-            background: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: 24px;
-            padding: 28px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
-            animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
-            border-color: var(--accent-color);
-        }
-
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--accent-color, #2563eb);
-            opacity: 0.3;
-        }
-
-        .stat-info .label {
-            color: #64748b;
-            font-size: 0.95rem;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .stat-info .value {
-            color: #0f172a;
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.01em;
-        }
-
-        .stat-icon {
-            position: absolute;
-            right: 24px;
-            bottom: 30px;
-            font-size: 3rem;
-            opacity: 0.08;
-            filter: grayscale(1);
-        }
-
-        /* Charts Layout */
-        .charts-row {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 24px;
-            margin-bottom: 48px;
-        }
-
-        .chart-card {
-            background: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: 24px;
-            padding: 32px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
-        }
-
-        .chart-card h3 {
-            color: #0f172a;
-            margin-bottom: 32px;
-            font-weight: 800;
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 320px;
-        }
-
-        /* Animations */
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.5s ease;
-        }
-
-        .loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #f1f5f9;
-            border-top-color: #2563eb;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @media (max-width: 850px) {
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 24px;
-            }
-        }
+        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
+        #particles-js { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
+<body class="text-gray-800">
+    <canvas id="particles-js"></canvas>
 
-<body>
-    <div id="loading" class="loading-overlay">
-        <div class="loading-spinner"></div>
+    <!-- Top Nav -->
+    <nav class="bg-psu-blue text-white shadow-md relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <a href="index.html" class="text-white hover:text-gray-300 transition"><i class="fas fa-arrow-left"></i> กลับ</a>
+                    <h1 class="text-xl font-semibold">PSU Student Voice Dashboard</h1>
+                </div>
+                <div class="text-sm opacity-80">
+                    อัพเดทล่าสุด: <span id="last-update">-</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col justify-center items-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-psu-blue"></div>
+        <p class="mt-4 text-psu-blue font-medium text-lg">กำลังโหลดข้อมูล...</p>
     </div>
 
-    <canvas id="particles-canvas"></canvas>
-
-    <div class="dashboard-container">
-        <header class="dashboard-header">
-            <div class="dashboard-meta">
-                <h1>ข้อมูลสรุปผล</h1>
-                <p>ระบบวอยซ์ออฟสติวเดนท์ (Student Voice) | อัปเดตล่าสุด: <span id="last-update">-</span></p>
-            </div>
-            <a href="index.html" class="btn-back">
-                <span>←</span> กลับไปหน้าแจ้งเรื่อง
-            </a>
-        </header>
-
-        <!-- Stats Overview -->
-        <div class="stats-grid">
-            <div class="stat-card" style="--accent-color: #3b82f6; animation-delay: 0.1s;">
-                <div class="stat-info">
-                    <span class="label">เรื่องร้องเรียนทั้งหมด</span>
-                    <span class="value" id="total-count">0</span>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total -->
+            <div class="glass-card rounded-xl shadow-lg p-6 border border-gray-100 transform hover:scale-105 transition duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1">เรื่องร้องเรียนทั้งหมด</p>
+                        <h3 class="text-3xl font-bold text-psu-blue" id="total-count">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-psu-blue text-xl">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
                 </div>
-                <div class="stat-icon">📩</div>
             </div>
-            <div class="stat-card" style="--accent-color: #f59e0b; animation-delay: 0.2s;">
-                <div class="stat-info">
-                    <span class="label">รอดำเนินการ</span>
-                    <span class="value" id="pending-count">0</span>
+            
+            <!-- Pending -->
+            <div class="glass-card rounded-xl shadow-lg p-6 border border-gray-100 transform hover:scale-105 transition duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1">รอดำเนินการ</p>
+                        <h3 class="text-3xl font-bold text-yellow-500" id="pending-count">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500 text-xl">
+                        <i class="fas fa-clock"></i>
+                    </div>
                 </div>
-                <div class="stat-icon">⏳</div>
             </div>
-            <div class="stat-card" style="--accent-color: #10b981; animation-delay: 0.3s;">
-                <div class="stat-info">
-                    <span class="label">เสร็จสิ้นแล้ว</span>
-                    <span class="value" id="done-count">0</span>
+            
+            <!-- Done -->
+            <div class="glass-card rounded-xl shadow-lg p-6 border border-gray-100 transform hover:scale-105 transition duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1">เสร็จสิ้นแล้ว</p>
+                        <h3 class="text-3xl font-bold text-green-500" id="done-count">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-500 text-xl">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
                 </div>
-                <div class="stat-icon">✅</div>
             </div>
-            <!-- Removed Dept Count as it is unsupported by current stable backend -->
         </div>
 
-        <!-- Charts Section -->
-        <div class="charts-row">
-            <div class="chart-card" style="animation: fadeInUp 0.8s ease backwards 0.5s;">
-                <h3>📊 สถิติตามประเภทเรื่อง</h3>
-                <div class="chart-container">
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Bar Chart -->
+            <div class="glass-card rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4"><i class="fas fa-chart-bar mr-2 text-psu-blue"></i>สถิติตามประเภทเรื่อง</h3>
+                <div class="relative h-72">
                     <canvas id="typeChart"></canvas>
                 </div>
             </div>
-            <div class="chart-card" style="animation: fadeInUp 0.8s ease backwards 0.6s;">
-                <h3>📁 อัตราส่วนตามสถานะ</h3>
-                <div class="chart-container">
+            
+            <!-- Doughnut Chart -->
+            <div class="glass-card rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4"><i class="fas fa-chart-pie mr-2 text-psu-blue"></i>สัดส่วนตามสถานะ</h3>
+                <div class="relative h-72 flex justify-center">
                     <canvas id="statusChart"></canvas>
                 </div>
             </div>
         </div>
-    </div>
+        
+    </main>
 
-    <!-- Particle effect is self-contained in dashboard.js -->
     <script src="dashboard.js"></script>
 </body>
-
 </html>

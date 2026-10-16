@@ -1,1178 +1,1260 @@
-// ===== CONFIG =====
-// ⚠️ ใส่ URL ของ Google Apps Script Web App ที่ Deploy แล้วตรงนี้
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyh_ouXE982PHgdG8BXLwEjTRl9LCF-XQhc9KocRfxDaXapEnubpcO1jE6GsS77Qp3p/exec';
-// ตัวอย่าง: 'https://script.google.com/macros/s/AKfycbx.../exec'
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiOSdbWlF_O-xXDVqA7ZJUs1yKfylZTuLWkfg6zbGIXxkuiouIC7uEl45FcGDICiA/exec';
 
-// ===== STATE =====
-let currentSection = 1;
-const totalSections = 8;
-let uploadedFiles = [];
-let currentLanguage = 'th';
-
-// ===== I18N DICTIONARY =====
-const translations = {
-    th: {
-        'intro-title-1': 'ระบบรับเรื่องร้องเรียน',
-        'intro-title-2': 'และข้อเสนอแนะนักศึกษา',
-        'intro-desc': 'พื้นที่นี้ถูกสร้างขึ้นเพื่อเปิดโอกาสให้นักศึกษาได้สะท้อนปัญหา เสนอแนวทาง และมีส่วนร่วมในการพัฒนามหาวิทยาลัยร่วมกัน',
-        'intro-sub-desc': 'ทุกความคิดเห็นของคุณมีความหมาย และจะถูกส่งต่อไปยังหน่วยงานที่เกี่ยวข้องเพื่อพิจารณาอย่างเหมาะสม',
-        'btn-start': 'เริ่มต้นเสนอความคิดเห็น',
-        'btn-view-dashboard': 'ดู Dashboard ทั้งหมด',
-        'stat-solved': 'ปัญหาที่แก้ไขแล้ว',
-        'stories-title': '✨ ความสำเร็จล่าสุด',
-        'stories-subtitle': 'เรื่องที่ผ่านการพิจารณาและดำเนินการแก้ไขเรียบร้อยแล้ว',
-        'lookup-title': 'ตรวจสอบสถานะเรื่องร้องเรียน',
-        'btn-search': 'ค้นหา',
-        'step-1': 'ประเภท', 'step-2': 'หมวดหมู่', 'step-3': 'หน่วยงาน', 'step-4': 'รายละเอียด', 'step-5': 'แนบไฟล์', 'step-6': 'สถานที่', 'step-7': 'ความเร่งด่วน', 'step-8': 'ตัวตน',
-        'section-1-title': 'ประเภทเรื่อง', 'section-1-subtitle': 'เลือกประเภทเรื่องที่คุณต้องการเสนอ',
-        'section-2-title': 'หมวดหมู่', 'section-2-subtitle': 'เลือกหมวดหมู่ที่เกี่ยวข้องกับเรื่องของคุณ',
-        'cat-welfare': 'ด้านสวัสดิการและคุณภาพชีวิตนักศึกษา', 'cat-activity': 'ด้านกิจกรรมและพัฒนานักศึกษา', 'cat-academic': 'ด้านวิชาการและการเรียน', 'cat-safety': 'ด้านความปลอดภัยและสิ่งแวดล้อม', 'cat-relation': 'ด้านความสัมพันธ์และพฤติกรรมบุคคล', 'cat-other': 'ด้านอื่นๆ',
-        'section-3-title': 'หน่วยงานที่เกี่ยวข้อง', 'section-3-subtitle': 'เลือกหน่วยงานที่เกี่ยวข้องกับเรื่องของคุณ',
-        'section-4-title': 'รายละเอียด', 'section-4-subtitle': 'กรุณาอธิบายรายละเอียดเรื่องที่ต้องการเสนอ',
-        'section-5-title': 'แนบไฟล์', 'section-5-subtitle': 'แนบรูปภาพหรือหลักฐานเพื่อช่วยให้การตรวจสอบรวดเร็วมากขึ้น',
-        'section-6-title': 'สถานที่', 'section-6-subtitle': 'ระบุสถานที่ที่เกิดเหตุ',
-        'section-7-title': 'ระดับความเร่งด่วน', 'section-7-subtitle': 'ประเมินระดับความสำคัญของเรื่อง',
-        'section-8-title': 'การเปิดเผยตัวตน', 'section-8-subtitle': 'เลือกว่าต้องการเปิดเผยตัวตนหรือไม่',
-        'btn-prev': 'ย้อนกลับ', 'btn-next': 'ถัดไป', 'btn-submit': 'ส่งข้อมูล',
-        'label-email': 'อีเมลสำหรับรับผลการดำเนินการ (ไม่บังคับ)',
-        'hint-email': 'เราจะส่งหมายเลขอ้างอิงและผลการตรวจสอบไปให้อีเมลนี้ครับ',
-        'success-title': 'ขอบคุณสำหรับความคิดเห็นของคุณ 🙏',
-        'success-message': 'เรื่องของคุณได้รับการบันทึกเรียบร้อยแล้ว และจะถูกส่งต่อไปยังหน่วยงานที่เกี่ยวข้องเพื่อพิจารณาดำเนินการต่อไป',
-        'success-ref-label': 'หมายเลขอ้างอิง',
-        'qr-label': 'สแกนเพื่อติดตามสถานะได้ทันที',
-        'copy-link': 'คัดลอกลิงก์ติดตาม',
-        'success-footer': 'ร่วมกันสร้างมหาวิทยาลัยที่ดีขึ้นไปพร้อมกัน 💙',
-        'btn-reset': 'ส่งเรื่องใหม่',
-        'type-complaint': 'ข้อร้องเรียน', 'type-suggestion': 'ข้อเสนอแนะ', 'type-problem': 'แจ้งปัญหา', 'type-other': 'อื่น ๆ',
-        'label-topic-type': 'ประเภทเรื่องที่ต้องการเสนอ หากไม่ทราบให้กด อื่น ๆ',
-        'label-category': 'หมวดหมู่ด้านที่เกี่ยวข้อง หากไม่ทราบให้กด อื่น ๆ',
-        'label-department': 'หน่วยงานที่เกี่ยวข้อง หากไม่ทราบให้กด อื่น ๆ',
-        'label-faculty': 'ระบุชื่อคณะ',
-        'label-subject': 'หัวข้อเรื่อง',
-        'label-details': 'รายละเอียด',
-        'label-attach': 'แนบรูปภาพหรือหลักฐาน',
-        'upload-text': 'ลากไฟล์มาวางที่นี่ หรือ คลิกเพื่อเลือกไฟล์',
-        'upload-hint': 'รองรับไฟล์ JPG, PNG, PDF (สูงสุด 10MB)',
-        'label-location': 'สถานที่เกิดเหตุ',
-        'label-map': 'ลิงก์พิกัด (ถ้ามี)',
-        'hint-map': '📌 วางลิงก์ Google Maps เพื่อระบุตำแหน่งที่แน่นอน',
-        'label-priority': 'ระดับความสำคัญ',
-        'label-identity': 'ต้องการเปิดเผยตัวตนหรือไม่',
-        'priority-low': 'ต่ำ', 'priority-low-desc': 'ไม่เร่งด่วน',
-        'priority-med': 'ปานกลาง', 'priority-med-desc': 'ควรดำเนินการ',
-        'priority-high': 'สูง', 'priority-high-desc': 'ต้องการเร่งด่วน',
-        'priority-urgent': 'เร่งด่วนมาก 🚨', 'priority-urgent-desc': 'ต้องแก้ไขทันที',
-        'id-anon': 'ไม่เปิดเผยตัวตน', 'id-anon-desc': 'ข้อมูลของคุณจะถูกเก็บเป็นความลับ',
-        'id-reveal': 'เปิดเผยตัวตน', 'id-reveal-desc': 'ระบุชื่อและช่องทางติดต่อ'
-    },
-    en: {
-        'intro-title-1': 'Student Voice',
-        'intro-title-2': 'Feedback Platform',
-        'intro-desc': 'A space created for students to reflect on problems, propose solutions, and participate in developing the university together.',
-        'intro-sub-desc': 'Every opinion matters and will be forwarded to relevant departments for consideration.',
-        'btn-start': 'Start Feedback',
-        'btn-view-dashboard': 'View Dashboard',
-        'stat-solved': 'Issues Solved',
-        'stories-title': '✨ Latest Success',
-        'stories-subtitle': 'Complaints that have been considered and resolved.',
-        'lookup-title': 'Track Complaint Status',
-        'btn-search': 'Search',
-        'step-1': 'Type', 'step-2': 'Category', 'step-3': 'Dept', 'step-4': 'Details', 'step-5': 'Files', 'step-6': 'Location', 'step-7': 'Priority', 'step-8': 'Identity',
-        'section-1-title': 'Topic Type', 'section-1-subtitle': 'Select the type of feedback',
-        'section-2-title': 'Category', 'section-2-subtitle': 'Select the category related to your issue',
-        'cat-welfare': 'Student Welfare & Quality of Life', 'cat-activity': 'Student Activities & Development', 'cat-academic': 'Academics & Learning', 'cat-safety': 'Safety & Environment', 'cat-relation': 'Relationships & Personal Behavior', 'cat-other': 'Others',
-        'section-3-title': 'Related Department', 'section-3-subtitle': 'Select the department involved',
-        'section-4-title': 'Details', 'section-4-subtitle': 'Please describe your concern',
-        'section-5-title': 'Attach Files', 'section-5-subtitle': 'Attach photos or evidence for faster verification',
-        'section-6-title': 'Location', 'section-6-subtitle': 'Where did this happen?',
-        'section-7-title': 'Urgency Level', 'section-7-subtitle': 'Assess the priority of this matter',
-        'section-8-title': 'Identity Disclosure', 'section-8-subtitle': 'Choose whether to reveal your identity',
-        'btn-prev': 'Back', 'btn-next': 'Next', 'btn-submit': 'Submit',
-        'label-email': 'Notification Email (Optional)',
-        'hint-email': 'We will send the reference number and results to this email.',
-        'success-title': 'Thank you for your feedback 🙏',
-        'success-message': 'Your report has been recorded and will be processed accordingly.',
-        'success-ref-label': 'Reference Number',
-        'qr-label': 'Scan to track status instantly',
-        'copy-link': 'Copy tracking link',
-        'success-footer': 'Building a better university together 💙',
-        'btn-reset': 'New Submission',
-        'type-complaint': 'Complaint', 'type-suggestion': 'Suggestion', 'type-problem': 'Report Issue', 'type-other': 'Other',
-        'label-topic-type': 'Select the type of your issue. If unsure, choose Other.',
-        'label-category': 'Select the related category. If unsure, choose Others.',
-        'label-department': 'Select the related department. If unsure, choose Others.',
-        'label-faculty': 'Specify faculty name',
-        'label-subject': 'Subject',
-        'label-details': 'Details',
-        'label-attach': 'Attach photos or evidence',
-        'upload-text': 'Drag files here, or click to select files',
-        'upload-hint': 'Supports JPG, PNG, PDF (max 10MB)',
-        'label-location': 'Incident location',
-        'label-map': 'Map link (optional)',
-        'hint-map': '📌 Paste a Google Maps link to pinpoint the exact location',
-        'label-priority': 'Priority level',
-        'label-identity': 'Would you like to reveal your identity?',
-        'priority-low': 'Low', 'priority-low-desc': 'Not urgent',
-        'priority-med': 'Medium', 'priority-med-desc': 'Should proceed',
-        'priority-high': 'High', 'priority-high-desc': 'Need urgency',
-        'priority-urgent': 'Urgent 🚨', 'priority-urgent-desc': 'Immediate fix',
-        'id-anon': 'Anonymous', 'id-anon-desc': 'Your info will be kept private',
-        'id-reveal': 'Reveal Identity', 'id-reveal-desc': 'Provide name & contact info',
-        'admin-login-title': '🔒 Admin Login',
-        'admin-login-desc': 'Please enter password to manage data.',
-        'btn-cancel': 'Cancel',
-        'btn-login': 'Login'
-    }
+const CATEGORY_DEPT_MAP = {
+  'สาธารณูปโภค / อาคารสถานที่': 'กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่',
+  'หอพักนักศึกษา': 'งานหอพักนักศึกษา',
+  'ความปลอดภัย / อาชีวอนามัย': 'ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม',
+  'กิจกรรม / พัฒนานักศึกษา': 'กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่',
+  'วิชาการ / ทะเบียน': 'สำนักงานการศึกษาและนวัตกรรมการเรียนรู้',
+  'ห้องสมุด / แหล่งเรียนรู้': 'สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร',
+  'IT / ระบบดิจิทัล': 'สำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ',
+  'สุขภาพ / กีฬา': 'ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่',
+  'การเงิน / ทุนการศึกษา': 'กองคลัง',
+  'สภานักศึกษา / องค์การนักศึกษา': 'สภานักศึกษา',
+  'อื่น ๆ': 'อื่น ๆ'
 };
 
-// ===== PARTICLES BACKGROUND =====
-(function initParticles() {
-    const canvas = document.getElementById('particles-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let particles = [];
+const LOCATION_DATA = {
+  'วิทยาเขตหาดใหญ่': [
+    'อาคารศูนย์กิจกรรมนักศึกษา', 'ศูนย์ประชุมนานาชาติฯ',
+    'โรงช้าง',
+    'หอพัก 1', 'หอพัก 2', 'หอพัก 3', 'หอพัก 4', 'หอพัก 5',
+    'หอพัก 6', 'หอพัก 7', 'หอพัก 8', 'หอพัก 9', 'หอพัก 10',
+    'หอพัก 11', 'หอพัก 12', 'หอพัก 13', 'หอพัก 14',
+    'ศูนย์กีฬาและสุขภาพ', 'สำนักทรัพยากรการเรียนรู้ (ห้องสมุด)',
+    'คณะวิศวกรรมศาสตร์', 'คณะวิทยาศาสตร์', 'คณะแพทยศาสตร์',
+    'คณะพยาบาลศาสตร์', 'คณะวิทยาการจัดการ', 'คณะทรัพยากรธรรมชาติ',
+    'คณะเภสัชศาสตร์', 'คณะทันตแพทยศาสตร์', 'คณะอุตสาหกรรมเกษตร',
+    'คณะศิลปศาสตร์', 'คณะนิติศาสตร์', 'คณะเศรษฐศาสตร์',
+    'คณะการแพทย์แผนไทย', 'คณะเทคนิคการแพทย์', 'วิทยาลัยนานาชาติ',
+    'อาคารสำนักงานอธิการบดี', 'ลานจอดรถ', 'ถนน/ทางเดินภายใน',
+    'อ่างเก็บน้ำ', 'อื่น ๆ'
+  ],
+  'วิทยาเขตปัตตานี': ['อาคารเรียนรวม', 'หอพักนักศึกษา', 'โรงอาหาร', 'ห้องสมุด', 'สนามกีฬา', 'อื่น ๆ'],
+  'วิทยาเขตภูเก็ต': ['อาคารเรียนรวม', 'หอพักนักศึกษา', 'โรงอาหาร', 'ห้องสมุด', 'อื่น ๆ'],
+  'วิทยาเขตสุราษฎร์ธานี': ['อาคารเรียนรวม', 'หอพักนักศึกษา', 'โรงอาหาร', 'ห้องสมุด', 'อื่น ๆ'],
+  'วิทยาเขตตรัง': ['อาคารเรียนรวม', 'หอพักนักศึกษา', 'โรงอาหาร', 'ห้องสมุด', 'อื่น ๆ']
+};
 
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
+let currentStep = 1;
+const totalSteps = 3;
+let uploadedFiles = [];
+let draftTimer = null;
 
-    function createParticles() {
-        particles = [];
-        const count = Math.floor((canvas.width * canvas.height) / 15000);
-        for (let i = 0; i < count; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 2 + 0.5,
-                speedX: (Math.random() - 0.5) * 0.4,
-                speedY: (Math.random() - 0.5) * 0.4,
-                opacity: Math.random() * 0.4 + 0.1
-            });
-        }
-    }
+// --- 1. PDPA Consent System ---
+function checkPDPA() {
+  const consent = localStorage.getItem('pdpa_consent');
+  if (!consent) {
+    document.getElementById('pdpa-overlay').classList.remove('hidden');
+    // Blur background could be handled via CSS class on main container or body, but typically handled by tailwind classes if we toggle a class on body or main content
+    // document.body.style.overflow = 'hidden'; 
+  }
+}
 
-    function drawParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(59, 130, 246, ${p.opacity})`;
-            ctx.fill();
+function acceptPDPA() {
+  const checkbox = document.getElementById('pdpa-checkbox');
+  if (checkbox && checkbox.checked) {
+    localStorage.setItem('pdpa_consent', JSON.stringify({ consented: true, date: new Date().toISOString() }));
+    document.getElementById('pdpa-overlay').classList.add('hidden');
+    // document.body.style.overflow = 'auto';
+  }
+}
 
-            p.x += p.speedX;
-            p.y += p.speedY;
-
-            if (p.x < 0) p.x = canvas.width;
-            if (p.x > canvas.width) p.x = 0;
-            if (p.y < 0) p.y = canvas.height;
-            if (p.y > canvas.height) p.y = 0;
-        });
-
-        // Draw connections
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 120) {
-                    ctx.beginPath();
-                    ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 * (1 - dist / 120)})`;
-                    ctx.lineWidth = 0.5;
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.stroke();
-                }
-            }
-        }
-
-        requestAnimationFrame(drawParticles);
-    }
-
-    resize();
-    createParticles();
-    drawParticles();
-
-    window.addEventListener('resize', () => {
-        resize();
-        createParticles();
+// --- 2. Particles Background ---
+function initParticles() {
+  const canvas = document.getElementById('particles-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  const particles = [];
+  const particleCount = 50;
+  
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      radius: Math.random() * 2 + 1
     });
-})();
-
-// ===== LANGUAGE LOGIC =====
-function toggleLanguage() {
-    currentLanguage = currentLanguage === 'th' ? 'en' : 'th';
-    applyLanguage(currentLanguage);
-}
-
-function applyLanguage(lang) {
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[lang][key]) {
-            el.textContent = translations[lang][key];
+  }
+  
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.5)';
+      ctx.fill();
+      
+      for (let j = i + 1; j < particles.length; j++) {
+        const p2 = particles[j];
+        const dx = p.x - p2.x;
+        const dy = p.y - p2.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = `rgba(59, 130, 246, ${1 - dist/100})`;
+          ctx.stroke();
         }
-    });
-
-    const flag = document.getElementById('lang-flag');
-    if (flag) flag.src = lang === 'th' ? 'https://flagcdn.com/w20/th.png' : 'https://flagcdn.com/w20/gb.png';
-
-    // Update placeholders
-    const refInput = document.getElementById('ref-input');
-    if (refInput) refInput.placeholder = lang === 'th' ? 'กรอกหมายเลขอ้างอิง เช่น REF-20260415-0001' : 'Enter reference number e.g. REF-20260415-0001';
-
-    const subjectInput = document.getElementById('subject');
-    if (subjectInput) subjectInput.placeholder = lang === 'th' ? 'เช่น ไฟทางเดินดับบริเวณอ่างเก็บน้ำ' : 'e.g. Walkway lights broken near reservoir';
-
-    const detailsInput = document.getElementById('details');
-    if (detailsInput) detailsInput.placeholder = lang === 'th'
-        ? 'กรุณาอธิบายรายละเอียด เช่น:\n- เกิดขึ้นที่ไหน\n- เกิดขึ้นเมื่อไหร่\n- ส่งผลกระทบอย่างไร'
-        : 'Please describe in detail:\n- Where did it happen?\n- When did it happen?\n- What is the impact?';
-
-    const locationInput = document.getElementById('location');
-    if (locationInput) locationInput.placeholder = lang === 'th' ? 'เช่น อาคารกิจกรรม / โรงอาหาร / ลานจอดรถ' : 'e.g. Activity Building / Canteen / Parking Lot';
-
-    const mapInput = document.getElementById('map-link');
-    if (mapInput) mapInput.placeholder = lang === 'th' ? 'เช่น https://maps.google.com/...' : 'e.g. https://maps.google.com/...';
-
-    const emailInput = document.getElementById('user-email');
-    if (emailInput) emailInput.placeholder = lang === 'th' ? 'example@psu.ac.th' : 'example@psu.ac.th';
-
-    // Translate department dropdown options
-    const deptSelect = document.getElementById('department');
-    if (deptSelect) {
-        const deptMap = {
-            '': { th: '-- เลือกหน่วยงาน --', en: '-- Select Department --' },
-            'กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่': { th: 'กองกายภาพและสิ่งแวดล้อม วิทยาเขตหาดใหญ่', en: 'Physical & Environment Division (Hat Yai)' },
-            'กองคลัง': { th: 'กองคลัง', en: 'Finance Division' },
-            'กองนโยบาย ยุทธศาสตร์ และแผน': { th: 'กองนโยบาย ยุทธศาสตร์ และแผน', en: 'Policy, Strategy & Planning Division' },
-            'กองบริหารทรัพยากรบุคคล': { th: 'กองบริหารทรัพยากรบุคคล', en: 'Human Resources Division' },
-            'กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่': { th: 'กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ วิทยาเขตหาดใหญ่', en: 'Student Development & Alumni (Hat Yai)' },
-            'คณะ': { th: 'คณะ', en: 'Faculty' },
-            'ชมรมฝ่ายกีฬา': { th: 'ชมรมฝ่ายกีฬา', en: 'Sports Club' },
-            'ชมรมฝ่ายบำเพ็ญประโยชน์': { th: 'ชมรมฝ่ายบำเพ็ญประโยชน์', en: 'Community Service Club' },
-            'ชมรมฝ่ายวิชาการ': { th: 'ชมรมฝ่ายวิชาการ', en: 'Academic Club' },
-            'ชมรมฝ่ายศิลป์': { th: 'ชมรมฝ่ายศิลป์', en: 'Arts Club' },
-            'พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารีและศูนย์แม่ข่ายประสานงาน อพ.สธ. ภาคใต้': { th: 'พิพิธภัณฑสถานธรรมชาติวิทยา ๕๐ พรรษา สยามบรมราชกุมารี', en: 'Natural History Museum' },
-            'ศูนย์กิจการนานาชาติและสื่อสารองค์กร': { th: 'ศูนย์กิจการนานาชาติและสื่อสารองค์กร', en: 'International Affairs & Communication Center' },
-            'ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่': { th: 'ศูนย์กีฬาและสุขภาพ วิทยาเขตหาดใหญ่', en: 'Sports & Health Center (Hat Yai)' },
-            'ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม': { th: 'ศูนย์บริหารจัดการความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม', en: 'Safety & Occupational Health Center' },
-            'ศูนย์บริหารจัดการคุณภาพองค์กร': { th: 'ศูนย์บริหารจัดการคุณภาพองค์กร', en: 'Quality Management Center' },
-            'ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี': { th: 'ศูนย์ประชุมนานาชาติฉลองราชสมบัติครบ ๖๐ ปี', en: 'International Convention Center' },
-            'ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์': { th: 'ศูนย์อาสาสมัคร มหาวิทยาลัยสงขลานครินทร์', en: 'PSU Volunteer Center' },
-            'ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์': { th: 'ศูนย์อาเซียนศึกษา ดร.ถนัด คอมันตร์', en: 'ASEAN Studies Center' },
-            'สภานักศึกษา': { th: 'สภานักศึกษา องค์การนักศึกษา', en: 'Student Council' },
-            'สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์': { th: 'สำนักงานกฏหมาย มหาวิทยาลัยสงขลานครินทร์', en: 'PSU Legal Office' },
-            'สำนักงานบริหารและจัดการทรัพย์สิน': { th: 'สำนักงานบริหารและจัดการทรัพย์สิน', en: 'Asset Management Office' },
-            'สำนักนวัตกรมดิจิทัลและระบบอัจฉริยะ': { th: 'สำนักนวัตกรมดิจิทัลและระบบอัจฉริยะ', en: 'Digital Innovation & Smart Systems' },
-            'สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร': { th: 'สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร', en: 'Learning Resources Center (Library)' },
-            'สำนักงานการศึกษาและนวัตกรรมการเรียนรู้(ฝ่ายทะเบียนและประมวลผล)': { th: 'สำนักงานการศึกษาและนวัตกรรมการเรียนรู้(ฝ่ายทะเบียนและประมวลผล)', en: 'Education & Learning Innovation (Registrar)' },
-            'หอประวัติ มหาวิทยาลัยสงขลานครินทร์': { th: 'หอประวัติ มหาวิทยาลัยสงขลานครินทร์', en: 'PSU History Hall' },
-            'หอพัก': { th: 'หอพักนักศึกษา', en: 'Student Dormitory' },
-            'องค์การนักศึกษา': { th: 'องค์การบริหาร องค์การนักศึกษา', en: 'Student Organization' },
-            'อื่น ๆ': { th: 'อื่น ๆ', en: 'Others' }
-        };
-        Array.from(deptSelect.options).forEach(opt => {
-            const mapping = deptMap[opt.value];
-            if (mapping) opt.textContent = mapping[lang];
-        });
+      }
     }
-
-    // Translate faculty dropdown options
-    const facSelect = document.getElementById('faculty');
-    if (facSelect) {
-        const facMap = {
-            '': { th: '-- เลือกคณะ --', en: '-- Select Faculty --' },
-            'วิศวกรรมศาสตร์': { th: 'วิศวกรรมศาสตร์', en: 'Engineering' },
-            'วิทยาศาสตร์': { th: 'วิทยาศาสตร์', en: 'Science' },
-            'แพทยศาสตร์': { th: 'แพทยศาสตร์', en: 'Medicine' },
-            'พยาบาลศาสตร์': { th: 'พยาบาลศาสตร์', en: 'Nursing' },
-            'วิทยาการจัดการ': { th: 'วิทยาการจัดการ', en: 'Management Sciences' },
-            'ทรัพยากรธรรมชาติ': { th: 'ทรัพยากรธรรมชาติ', en: 'Natural Resources' },
-            'เภสัชศาสตร์': { th: 'เภสัชศาสตร์', en: 'Pharmaceutical Sciences' },
-            'ทันตแพทยศาสตร์': { th: 'ทันตแพทยศาสตร์', en: 'Dentistry' },
-            'อุตสาหกรรมเกษตร': { th: 'อุตสาหกรรมเกษตร', en: 'Agro-Industry' },
-            'ศิลปศาสตร์': { th: 'ศิลปศาสตร์', en: 'Liberal Arts' },
-            'นิติศาสตร์': { th: 'นิติศาสตร์', en: 'Law' },
-            'เศรษฐศาสตร์': { th: 'เศรษฐศาสตร์', en: 'Economics' },
-            'การแพทย์แผนไทย': { th: 'การแพทย์แผนไทย', en: 'Traditional Thai Medicine' },
-            'เทคนิคการแพทย์': { th: 'เทคนิคการแพทย์', en: 'Medical Technology' },
-            'วิทยาลัยนานาชาติ': { th: 'วิทยาลัยนานาชาติ', en: 'International College' }
-        };
-        Array.from(facSelect.options).forEach(opt => {
-            const mapping = facMap[opt.value];
-            if (mapping) opt.textContent = mapping[lang];
-        });
-    }
+    
+    requestAnimationFrame(draw);
+  }
+  
+  draw();
+  
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
 }
 
-
-
-// ===== COUNTER ANIMATION =====
-function animateCounters() {
-    const counters = document.querySelectorAll('.stat-number');
-    counters.forEach(counter => {
-        const target = parseInt(counter.getAttribute('data-count'));
-        if (!target) return;
-        const duration = 2000;
-        const startTime = performance.now();
-
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.floor(eased * target);
-            counter.textContent = current.toLocaleString();
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            }
-        }
-
-        requestAnimationFrame(update);
-    });
-}
-
-// ===== LIVE DATA LOADING =====
-async function loadLiveStats() {
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL_HERE')) return;
-
-    try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=stats&t=${Date.now()}`);
-        const result = await response.json();
-
-        if (result.success && result.data) {
-            const stats = result.data;
-
-            // Update the data-count attributes
-            const totalEl = document.querySelector('.stat-item:nth-child(1) .stat-number');
-            const doneEl = document.getElementById('stat-done');
-
-            if (totalEl) totalEl.setAttribute('data-count', stats.total);
-            if (doneEl) doneEl.setAttribute('data-count', stats.done);
-
-            // Show and render home chart if data exists
-            const homeChart = document.getElementById('home-dashboard-chart');
-            if (homeChart && stats.total > 0) {
-                homeChart.style.display = 'block';
-                renderHomeChart(stats.types);
-            }
-
-            // Restart counters with new data
-            animateCounters();
-        }
-    } catch (error) {
-        console.error('Failed to load live stats:', error);
-    }
-}
-
-function renderHomeChart(typeCounts) {
-    const ctx = document.getElementById('homeTypeChart');
-    if (!ctx) return;
-
-    const labels = Object.keys(typeCounts);
-    const values = Object.values(typeCounts);
-
-    new Chart(ctx.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'จำนวนเรื่อง',
-                data: values,
-                backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                borderColor: '#1e40af',
-                borderWidth: 1.5,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(0,0,0,0.05)' },
-                    ticks: { color: '#64748b', font: { size: 10 } }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: '#64748b', font: { size: 10 } }
-                }
-            }
-        }
-    });
-}
-
-// ===== PAGE NAVIGATION =====
+// --- 3. Page Navigation (SPA) ---
 function showPage(pageId) {
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-        page.classList.remove('active');
+  const pages = document.querySelectorAll('.page');
+  pages.forEach(page => page.classList.add('hidden'));
+  
+  const targetPage = document.getElementById(pageId);
+  if (targetPage) {
+    targetPage.classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }
+}
+
+// --- 4. Smart Department Mapping ---
+function handleCategoryChange(e) {
+  if (e.target.name === 'category') {
+    const category = e.target.value;
+    const departmentDisplay = document.getElementById('department-display');
+    const departmentName = document.getElementById('department-name');
+    if (departmentDisplay) {
+      const mappedDept = CATEGORY_DEPT_MAP[category] || 'ระบุฝ่ายไม่สำเร็จ';
+      if (departmentName) {
+        departmentName.textContent = 'หน่วยงานรับผิดชอบ: ' + mappedDept;
+      } else {
+        departmentDisplay.textContent = 'หน่วยงานรับผิดชอบ: ' + mappedDept;
+      }
+      departmentDisplay.classList.remove('hidden');
+      departmentDisplay.dataset.dept = mappedDept;
+    }
+  }
+}
+
+// --- 5. Cascading Location Dropdown ---
+function handleCampusChange() {
+  const campusEl = document.getElementById('campus');
+  const campus = campusEl && campusEl.value ? campusEl.value : 'วิทยาเขตหาดใหญ่';
+  const buildingSelect = document.getElementById('building');
+  if (!buildingSelect) return;
+  
+  buildingSelect.disabled = false;
+  buildingSelect.innerHTML = '<option value="">-- เลือกอาคาร/สถานที่ --</option>';
+  
+  const list = LOCATION_DATA[campus] || LOCATION_DATA['วิทยาเขตหาดใหญ่'] || [];
+  list.forEach(building => {
+    const option = document.createElement('option');
+    option.value = building;
+    option.textContent = building;
+    buildingSelect.appendChild(option);
+  });
+}
+
+// --- 6. Auto-Save Draft ---
+function saveDraft() {
+  const getCheckedValue = (name) => {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '';
+  };
+  
+  const draft = {
+    category: getCheckedValue('category'),
+    subject: document.getElementById('subject')?.value || '',
+    details: document.getElementById('details')?.value || '',
+    campus: document.getElementById('campus')?.value || '',
+    building: document.getElementById('building')?.value || '',
+    floorArea: document.getElementById('floor-area')?.value || '',
+    landmark: document.getElementById('landmark')?.value || '',
+    urgency: getCheckedValue('urgency'),
+    identity: getCheckedValue('identity'),
+    fullName: document.getElementById('full-name')?.value || '',
+    contactInfo: document.getElementById('contact-info')?.value || '',
+    anonContact: document.getElementById('anon-contact')?.value || ''
+  };
+  
+  localStorage.setItem('draft_complaint', JSON.stringify(draft));
+}
+
+function restoreDraft() {
+  const draftStr = localStorage.getItem('draft_complaint');
+  if (draftStr) {
+    try {
+      const draft = JSON.parse(draftStr);
+      
+      if (draft.category) {
+        const catRadio = document.querySelector(`input[name="category"][value="${draft.category}"]`);
+        if (catRadio) {
+          catRadio.checked = true;
+          handleCategoryChange({ target: catRadio });
+        }
+      }
+      
+      if (document.getElementById('subject')) document.getElementById('subject').value = draft.subject || '';
+      if (document.getElementById('details')) {
+        document.getElementById('details').value = draft.details || '';
+        updateCharCount();
+      }
+      
+      if (document.getElementById('campus')) {
+        document.getElementById('campus').value = 'วิทยาเขตหาดใหญ่';
+        handleCampusChange();
+      }
+      
+      if (draft.building && document.getElementById('building')) {
+        setTimeout(() => {
+          document.getElementById('building').value = draft.building;
+        }, 100);
+      }
+      
+      if (document.getElementById('floor-area')) document.getElementById('floor-area').value = draft.floorArea || '';
+      if (document.getElementById('landmark')) document.getElementById('landmark').value = draft.landmark || '';
+      if (draft.urgency) {
+        const urgRadio = document.querySelector(`input[name="urgency"][value="${draft.urgency}"]`);
+        if (urgRadio) urgRadio.checked = true;
+      }
+      
+      if (draft.identity) {
+        const idRadio = document.querySelector(`input[name="identity"][value="${draft.identity}"]`);
+        if (idRadio) {
+          idRadio.checked = true;
+          handleIdentityChange();
+        }
+      }
+      
+      if (draft.fullName && document.getElementById('full-name')) {
+        document.getElementById('full-name').value = draft.fullName;
+      }
+      if (draft.contactInfo && document.getElementById('contact-info')) {
+        document.getElementById('contact-info').value = draft.contactInfo;
+      }
+      if (draft.anonContact && document.getElementById('anon-contact')) {
+        document.getElementById('anon-contact').value = draft.anonContact;
+      }
+    } catch (e) {
+      console.error('Failed to restore draft', e);
+    }
+  }
+}
+
+function clearDraft() {
+  localStorage.removeItem('draft_complaint');
+}
+
+function setupDraftAutoSave() {
+  const inputs = document.querySelectorAll('#form-page input, #form-page select, #form-page textarea');
+  inputs.forEach(input => {
+    input.addEventListener('input', () => {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(saveDraft, 2000);
     });
-    setTimeout(() => {
-        document.getElementById(pageId).classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
+    input.addEventListener('change', () => {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(saveDraft, 2000);
+    });
+  });
 }
 
-function showFormPage() {
-    showPage('form-page');
+// --- 7. 3-Step Form Navigation ---
+function showStep(stepNum) {
+  currentStep = stepNum;
+  
+  // Hide all steps
+  for (let i = 1; i <= totalSteps; i++) {
+    const section = document.getElementById(`form-section-${i}`);
+    if (section) {
+      if (i === currentStep) {
+        section.classList.remove('hidden');
+      } else {
+        section.classList.add('hidden');
+      }
+    }
+  }
+  
+  updateProgress();
+  
+  // Toggle buttons
+  const prevBtn = document.getElementById('btn-prev');
+  const nextBtn = document.getElementById('btn-next');
+  const submitBtn = document.getElementById('btn-submit');
+  
+  if (prevBtn) {
+    if (currentStep === 1) prevBtn.classList.add('hidden');
+    else prevBtn.classList.remove('hidden');
+  }
+  if (nextBtn) {
+    if (currentStep === totalSteps) nextBtn.classList.add('hidden');
+    else nextBtn.classList.remove('hidden');
+  }
+  if (submitBtn) {
+    if (currentStep === totalSteps) submitBtn.classList.remove('hidden');
+    else submitBtn.classList.add('hidden');
+  }
+  
+  const formPage = document.getElementById('form-page');
+  if (formPage) {
+    formPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
-// ===== FORM SECTION NAVIGATION =====
+function nextStep() {
+  if (validateStep(currentStep)) {
+    if (currentStep < totalSteps) {
+      showStep(currentStep + 1);
+    }
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    showStep(currentStep - 1);
+  }
+}
+
 function updateProgress() {
-    const fill = document.getElementById('progress-fill');
-    if (!fill) return;
-    const percentage = (currentSection / totalSections) * 100;
-    fill.style.width = percentage + '%';
-
-    const steps = document.querySelectorAll('.step');
-    steps.forEach((step, index) => {
-        step.classList.remove('active', 'completed');
-        if (index + 1 === currentSection) {
-            step.classList.add('active');
-        } else if (index + 1 < currentSection) {
-            step.classList.add('completed');
-        }
-    });
-}
-
-function showSection(sectionNum) {
-    const sections = document.querySelectorAll('.form-section');
-    sections.forEach(s => s.classList.remove('active'));
-
-    const target = document.querySelector(`.form-section[data-section="${sectionNum}"]`);
-    if (target) {
-        target.classList.add('active');
+  const progressFill = document.getElementById('progress-fill');
+  if (progressFill) {
+    const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+    progressFill.style.width = `${percentage}%`;
+  }
+  
+  for (let i = 1; i <= totalSteps; i++) {
+    const dot = document.getElementById(`step-dot-${i}`);
+    const label = document.getElementById(`step-label-${i}`);
+    if (dot) {
+      if (i < currentStep) {
+        dot.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-emerald-500 shadow-md transition-colors";
+        dot.innerHTML = '<i class="fa-solid fa-check"></i>';
+        if (label) label.className = "text-xs font-semibold text-emerald-600";
+      } else if (i === currentStep) {
+        dot.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-primary-600 shadow-md ring-4 ring-primary-100 transition-colors";
+        dot.textContent = i;
+        if (label) label.className = "text-xs font-semibold text-primary-600";
+      } else {
+        dot.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-400 bg-slate-100 transition-colors";
+        dot.textContent = i;
+        if (label) label.className = "text-xs font-medium text-slate-500";
+      }
     }
-
-    const btnPrev = document.getElementById('btn-prev');
-    const btnNext = document.getElementById('btn-next');
-    const btnSubmit = document.getElementById('btn-submit');
-
-    if (btnPrev) btnPrev.style.visibility = sectionNum === 1 ? 'hidden' : 'visible';
-
-    if (sectionNum === totalSections) {
-        if (btnNext) btnNext.style.display = 'none';
-        if (btnSubmit) btnSubmit.style.display = 'inline-flex';
-    } else {
-        if (btnNext) btnNext.style.display = 'inline-flex';
-        if (btnSubmit) btnSubmit.style.display = 'none';
-    }
-
-    updateProgress();
+  }
 }
 
-function validateSection(sectionNum) {
-    clearErrors();
-    let isValid = true;
-
-    switch (sectionNum) {
-        case 1: {
-            const selected = document.querySelector('input[name="topicType"]:checked');
-            if (!selected) {
-                showError('topic-type', 'กรุณาเลือกประเภทเรื่อง');
-                isValid = false;
-            }
-            break;
-        }
-        case 2: {
-            const selected = document.querySelector('input[name="category"]:checked');
-            if (!selected) {
-                showError('category-group', 'กรุณาเลือกหมวดหมู่');
-                isValid = false;
-            }
-            break;
-        }
-        case 3: {
-            const dept = document.getElementById('department');
-            if (!dept.value) {
-                dept.classList.add('field-error');
-                showErrorAfter(dept.parentElement, 'กรุณาเลือกหน่วยงาน');
-                isValid = false;
-            }
-            break;
-        }
-        case 4: {
-            const subject = document.getElementById('subject');
-            const details = document.getElementById('details');
-            if (!subject.value.trim()) {
-                subject.classList.add('field-error');
-                showErrorAfter(subject, 'กรุณากรอกหัวข้อเรื่อง');
-                isValid = false;
-            }
-            if (!details.value.trim()) {
-                details.classList.add('field-error');
-                showErrorAfter(details, 'กรุณากรอกรายละเอียด');
-                isValid = false;
-            }
-            break;
-        }
-        case 5:
-            break;
-        case 6: {
-            const location = document.getElementById('location');
-            if (!location.value.trim()) {
-                location.classList.add('field-error');
-                showErrorAfter(location, 'กรุณาระบุสถานที่');
-                isValid = false;
-            }
-            break;
-        }
-        case 7: {
-            const selected = document.querySelector('input[name="priority"]:checked');
-            if (!selected) {
-                showError('priority-group', 'กรุณาเลือกระดับความสำคัญ');
-                isValid = false;
-            }
-            break;
-        }
-        case 8: {
-            const identity = document.querySelector('input[name="identity"]:checked');
-            if (!identity) {
-                showError('identity-group', 'กรุณาเลือกการเปิดเผยตัวตน');
-                isValid = false;
-            }
-            if (identity && identity.value === 'เปิดเผย') {
-                const name = document.getElementById('full-name');
-                const contact = document.getElementById('contact');
-                if (!name.value.trim()) {
-                    name.classList.add('field-error');
-                    showErrorAfter(name, 'กรุณากรอกชื่อ-นามสกุล');
-                    isValid = false;
-                }
-                if (!contact.value.trim()) {
-                    contact.classList.add('field-error');
-                    showErrorAfter(contact, 'กรุณากรอกช่องทางติดต่อ');
-                    isValid = false;
-                }
-            }
-            break;
-        }
-    }
-    return isValid;
-}
-
-function showError(containerId, message) {
-    const container = document.getElementById(containerId);
-    const error = document.createElement('div');
-    error.className = 'error-message';
-    error.innerHTML = `⚠️ ${message}`;
-    container.parentElement.appendChild(error);
-}
-
-function showErrorAfter(element, message) {
-    const error = document.createElement('div');
-    error.className = 'error-message';
-    error.innerHTML = `⚠️ ${message}`;
-    element.parentElement.appendChild(error);
+// --- 8. Form Validation ---
+function showError(elementId, message) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  
+  let errorEl = el.nextElementSibling;
+  if (!errorEl || !errorEl.classList.contains('error-msg')) {
+    errorEl = document.createElement('div');
+    errorEl.className = 'error-msg text-red-500 text-sm mt-1 flex items-center gap-1';
+    el.parentNode.insertBefore(errorEl, el.nextSibling);
+  }
+  errorEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
+  
+  if (el.tagName !== 'DIV') {
+    el.classList.add('border-red-500');
+  }
 }
 
 function clearErrors() {
-    document.querySelectorAll('.error-message').forEach(e => e.remove());
-    document.querySelectorAll('.field-error').forEach(e => e.classList.remove('field-error'));
+  const errorMsgs = document.querySelectorAll('.error-msg');
+  errorMsgs.forEach(msg => msg.remove());
+  
+  const errorInputs = document.querySelectorAll('.border-red-500');
+  errorInputs.forEach(input => input.classList.remove('border-red-500'));
 }
 
-function nextSection() {
-    if (!validateSection(currentSection)) return;
-
-    if (currentSection < totalSections) {
-        currentSection++;
-        showSection(currentSection);
-        document.querySelector('.form-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+function validateStep(step) {
+  clearErrors();
+  let isValid = true;
+  
+  if (step === 1) {
+    const category = document.querySelector('input[name="category"]:checked');
+    if (!category) {
+      showError('category-group', 'กรุณาเลือกหมวดหมู่เรื่องร้องเรียน');
+      isValid = false;
     }
-}
-
-function prevSection() {
-    if (currentSection > 1) {
-        currentSection--;
-        showSection(currentSection);
-        document.querySelector('.form-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    const subject = document.getElementById('subject');
+    if (subject && !subject.value.trim()) {
+      showError('subject', 'กรุณากรอกหัวข้อเรื่อง');
+      isValid = false;
     }
+    
+    const details = document.getElementById('details');
+    if (details && !details.value.trim()) {
+      showError('details', 'กรุณากรอกรายละเอียดเรื่องร้องเรียน');
+      isValid = false;
+    }
+  } else if (step === 2) {
+    const campus = document.getElementById('campus');
+    if (campus && !campus.value) {
+      showError('campus', 'กรุณาเลือกวิทยาเขต');
+      isValid = false;
+    }
+    
+    const building = document.getElementById('building');
+    if (building && !building.value) {
+      showError('building', 'กรุณาเลือกอาคาร/หอพัก/สถานที่');
+      isValid = false;
+    }
+    
+    const urgency = document.querySelector('input[name="urgency"]:checked');
+    if (!urgency) {
+      showError('urgency-group', 'กรุณาเลือกระดับความเร่งด่วน');
+      isValid = false;
+    }
+  } else if (step === 3) {
+    const identity = document.querySelector('input[name="identity"]:checked');
+    if (!identity) {
+      showError('identity-group', 'กรุณาเลือกรูปแบบการแสดงตัวตน');
+      isValid = false;
+    } else {
+      if (identity.value === 'ไม่เปิดเผยตัวตน') {
+        const pin1 = document.getElementById('pin-1')?.value || '';
+        const pin2 = document.getElementById('pin-2')?.value || '';
+        const pin3 = document.getElementById('pin-3')?.value || '';
+        const pin4 = document.getElementById('pin-4')?.value || '';
+        
+        if (!pin1 || !pin2 || !pin3 || !pin4) {
+          showError('pin-group', 'กรุณาระบุรหัส PIN ให้ครบทั้ง 4 หลัก');
+          isValid = false;
+        }
+      } else if (identity.value === 'เปิดเผยตัวตน') {
+        const fullName = document.getElementById('full-name');
+        if (fullName && !fullName.value.trim()) {
+          showError('full-name', 'กรุณาระบุชื่อ-นามสกุล');
+          isValid = false;
+        }
+      }
+    }
+  }
+  
+  return isValid;
 }
 
-// ===== CONDITIONAL IDENTITY FIELDS =====
-document.querySelectorAll('input[name="identity"]').forEach(radio => {
-    radio.addEventListener('change', function () {
-        const identityFields = document.getElementById('identity-fields');
-        if (!identityFields) return;
-        if (this.value === 'เปิดเผย') {
-            identityFields.style.display = 'block';
-            identityFields.style.animation = 'sectionIn 0.4s ease';
-        } else {
-            identityFields.style.display = 'none';
-            document.getElementById('full-name').value = '';
-            document.getElementById('contact').value = '';
-        }
-    });
-});
-
-// ===== CHARACTER COUNTER =====
-const detailsTextarea = document.getElementById('details');
-const charCountEl = document.getElementById('char-count');
-if (detailsTextarea && charCountEl) {
-    detailsTextarea.addEventListener('input', function () {
-        const count = this.value.length;
-        charCountEl.textContent = count;
-        if (count > 2000) {
-            this.value = this.value.substring(0, 2000);
-            charCountEl.textContent = 2000;
-        }
-    });
+// --- 9. Identity Conditional Fields ---
+function handleIdentityChange() {
+  const identity = document.querySelector('input[name="identity"]:checked');
+  if (!identity) return;
+  
+  const anonymousFields = document.getElementById('anonymous-fields');
+  const revealFields = document.getElementById('reveal-fields');
+  
+  if (anonymousFields && revealFields) {
+    if (identity.value === 'ไม่เปิดเผยตัวตน') {
+      anonymousFields.classList.remove('hidden');
+      revealFields.classList.add('hidden');
+    } else {
+      revealFields.classList.remove('hidden');
+      anonymousFields.classList.add('hidden');
+    }
+  }
 }
 
-// ===== FILE UPLOAD =====
-const fileUploadArea = document.getElementById('file-upload-area');
-const fileInput = document.getElementById('file-input');
-const fileListEl = document.getElementById('file-list');
-
-if (fileUploadArea && fileInput) {
-    fileUploadArea.addEventListener('click', () => fileInput.click());
-
-    fileUploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        fileUploadArea.classList.add('drag-over');
+// --- 10. PIN Input Auto-Advance ---
+function setupPinInputs() {
+  const pinInputGroups = [
+    ['pin-1', 'pin-2', 'pin-3', 'pin-4'],
+    ['track-pin-1', 'track-pin-2', 'track-pin-3', 'track-pin-4']
+  ];
+  
+  pinInputGroups.forEach(group => {
+    group.forEach((id, index) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      
+      el.addEventListener('input', (e) => {
+        el.value = el.value.replace(/[^0-9]/g, '').slice(0, 1);
+        if (el.value.length === 1 && index < group.length - 1) {
+          document.getElementById(group[index + 1]).focus();
+        }
+      });
+      
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && el.value === '' && index > 0) {
+          document.getElementById(group[index - 1]).focus();
+        }
+      });
     });
-
-    fileUploadArea.addEventListener('dragleave', () => {
-        fileUploadArea.classList.remove('drag-over');
-    });
-
-    fileUploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileUploadArea.classList.remove('drag-over');
-        handleFiles(e.dataTransfer.files);
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-    });
+  });
 }
 
-// ===== DEPARTMENT & FACULTY DEPENDENCY =====
-const departmentSelect = document.getElementById('department');
-const facultyGroup = document.getElementById('faculty-group');
-const facultySelect = document.getElementById('faculty');
-
-if (departmentSelect && facultyGroup && facultySelect) {
-    departmentSelect.addEventListener('change', function () {
-        if (this.value === 'คณะ') {
-            facultyGroup.style.display = 'block';
-            facultySelect.required = true;
-        } else {
-            facultyGroup.style.display = 'none';
-            facultySelect.required = false;
-            facultySelect.selectedIndex = 0;
-        }
-    });
+// --- 11. File Upload ---
+function setupFileUpload() {
+  const uploadArea = document.getElementById('file-upload-area');
+  const fileInput = document.getElementById('file-input') || document.getElementById('file-upload');
+  if (!uploadArea || !fileInput) return;
+  
+  uploadArea.addEventListener('click', () => fileInput.click());
+  
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('border-primary-500', 'bg-primary-50');
+  });
+  
+  uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('border-primary-500', 'bg-primary-50');
+  });
+  
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('border-primary-500', 'bg-primary-50');
+    if (e.dataTransfer && e.dataTransfer.files) {
+      handleFiles(e.dataTransfer.files);
+    }
+  });
+  
+  fileInput.addEventListener('change', (e) => {
+    if (e.target && e.target.files) {
+      handleFiles(e.target.files);
+      fileInput.value = ''; // Reset input
+    }
+  });
 }
 
-function handleFiles(files) {
-    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-    const maxSize = 10 * 1024 * 1024;
+async function handleFiles(files) {
+  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+  const maxFiles = 5;
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  
+  for (let file of files) {
+    if (uploadedFiles.length >= maxFiles) {
+      showToast(`อัพโหลดได้สูงสุด ${maxFiles} ไฟล์เท่านั้น`);
+      break;
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+      showToast(`ไม่รองรับไฟล์ ${file.name}`);
+      continue;
+    }
+    
+    if (file.size > maxSize) {
+      showToast(`ไฟล์ ${file.name} มีขนาดใหญ่เกิน 10MB`);
+      continue;
+    }
+    
+    try {
+      let data = await fileToBase64(file);
+      if (file.type.startsWith('image/')) {
+        data = await compressImage(file);
+      }
+      
+      uploadedFiles.push({
+        name: file.name,
+        type: file.type,
+        data: data.split(',')[1] // Get base64 without prefix
+      });
+      
+      renderFileList();
+    } catch (e) {
+      console.error('File processing error', e);
+      showToast(`เกิดข้อผิดพลาดในการประมวลผลไฟล์ ${file.name}`);
+    }
+  }
+}
 
-    Array.from(files).forEach(file => {
-        if (!allowedTypes.includes(file.type)) {
-            showToast('❌ รองรับเฉพาะไฟล์ JPG, PNG, PDF เท่านั้น');
-            return;
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+function compressImage(file, maxWidth = 1000, maxHeight = 1000, quality = 0.6) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
         }
-        if (file.size > maxSize) {
-            showToast('❌ ไฟล์มีขนาดใหญ่เกิน 10MB');
-            return;
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
         }
-        if (uploadedFiles.length >= 5) {
-            showToast('❌ อัปโหลดได้สูงสุด 5 ไฟล์');
-            return;
-        }
-        uploadedFiles.push(file);
-        renderFileList();
-    });
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
 }
 
 function renderFileList() {
-    if (!fileListEl) return;
-    fileListEl.innerHTML = '';
-    uploadedFiles.forEach((file, index) => {
-        const fileIcon = file.type === 'application/pdf' ? '📄' : '🖼️';
-        const fileSize = (file.size / 1024).toFixed(1) + ' KB';
-
-        const item = document.createElement('div');
-        item.className = 'file-item';
-        item.innerHTML = `
-            <div class="file-info">
-                <span class="file-icon">${fileIcon}</span>
-                <span class="file-name">${file.name}</span>
-                <span class="file-size">(${fileSize})</span>
-            </div>
-            <button type="button" class="file-remove" onclick="removeFile(${index})" title="ลบไฟล์">✕</button>
-        `;
-        fileListEl.appendChild(item);
-    });
+  const container = document.getElementById('file-list');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  uploadedFiles.forEach((file, index) => {
+    const div = document.createElement('div');
+    div.className = 'flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-primary-300 transition-all';
+    
+    let icon = '📄';
+    if (file.type.startsWith('image/')) icon = '🖼️';
+    
+    div.innerHTML = `
+      <div class="flex items-center gap-3 overflow-hidden">
+        <span class="text-xl">${icon}</span>
+        <div class="flex flex-col min-w-0">
+          <span class="truncate text-sm font-medium text-slate-800">${file.name}</span>
+          <span class="text-xs text-emerald-600 font-medium">✓ แนบไฟล์เรียบร้อย</span>
+        </div>
+      </div>
+      <button type="button" class="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer" onclick="removeFile(${index})" title="ลบไฟล์">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    `;
+    container.appendChild(div);
+  });
 }
 
-function removeFile(index) {
-    uploadedFiles.splice(index, 1);
-    renderFileList();
+window.removeFile = function(index) {
+  uploadedFiles.splice(index, 1);
+  renderFileList();
 }
 
-// Helper to convert file to base64
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-}
-
-// Helper to compress image
-function compressImage(file, maxWidth = 1000, maxHeight = 1000, quality = 0.6) {
-    return new Promise((resolve, reject) => {
-        if (!file.type.startsWith('image/') || file.type === 'image/gif') {
-            // ไม่บีบอัดถ้าไม่ใช่รูปภาพ หรือเป็น GIF
-            resolve(file);
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-
-                // คำนวณขนาดใหม่รักษาอัตราส่วน
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // แปลงเป็น Blob
-                canvas.toBlob((blob) => {
-                    if (!blob) {
-                        reject(new Error('Canvas to Blob failed'));
-                        return;
-                    }
-                    // คืนค่าเป็น File object ใหม่
-                    const compressedFile = new File([blob], file.name, {
-                        type: 'image/jpeg',
-                        lastModified: Date.now(),
-                    });
-                    resolve(compressedFile);
-                }, 'image/jpeg', quality);
-            };
-            img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
-    });
-}
-
-// ===== LOCAL STORAGE HELPERS (fallback) =====
-function getComplaints() {
-    const data = localStorage.getItem('complaints');
-    return data ? JSON.parse(data) : [];
-}
-
-function saveComplaintLocal(complaint) {
-    const complaints = getComplaints();
-    complaints.unshift(complaint);
-    localStorage.setItem('complaints', JSON.stringify(complaints));
-}
-
-// ===== SEND TO GOOGLE SHEETS (via hidden iframe form) =====
-async function sendToGoogleSheets(formData) {
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL_HERE')) {
-        console.warn('⚠️ ยังไม่ได้ตั้งค่า APPS_SCRIPT_URL');
-        return { success: true, local: true };
+// --- 12. Character Counter ---
+function updateCharCount() {
+  const details = document.getElementById('details');
+  const count = document.getElementById('char-count');
+  if (details && count) {
+    let val = details.value;
+    if (val.length > 2000) {
+      details.value = val.slice(0, 2000);
+      val = details.value;
     }
-
-    try {
-        // ส่งข้อมูลแบบ cors + application/json เพื่อให้ Apps Script รับ body ได้ถูกต้อง
-        // (รวมถึงข้อมูลไฟล์แนบ base64 ที่จะถูกบันทึกลง Google Drive)
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('❌ Error sending to Google Sheets:', error);
-        // Fallback: ลองส่งแบบ no-cors (ข้อมูลจะไปถึงแต่อ่าน response ไม่ได้)
-        try {
-            await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(formData)
-            });
-            return { success: true, fallback: true };
-        } catch (fallbackError) {
-            console.error('❌ Fallback also failed:', fallbackError);
-            return { success: false, error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' };
-        }
-    }
+    count.textContent = `${val.length}/2000`;
+  }
 }
 
-// ===== FORM SUBMISSION =====
+// --- 13. PIN Hashing ---
+async function hashPIN(pin) {
+  const pinStr = (pin || '').toString().trim();
+  try {
+    if (window.crypto && window.crypto.subtle) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pinStr);
+      const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) {
+    console.warn('crypto.subtle failed, using fallback', e);
+  }
+  // Simple deterministic fallback for non-crypto contexts
+  let hash = 0;
+  for (let i = 0; i < pinStr.length; i++) {
+    const char = pinStr.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return 'fallback_' + Math.abs(hash).toString(16);
+}
+
+// --- 14. Form Submission ---
 async function submitForm() {
-    if (!validateSection(currentSection)) return;
-
-    const btnSubmit = document.getElementById('btn-submit');
-    const originalContent = btnSubmit.innerHTML;
-    btnSubmit.disabled = true;
-
-    // Generate reference number
-    const now = new Date();
-    const refNum = `REF-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`;
-
-    console.log('Starting submission...', { id: refNum, files: uploadedFiles.length });
-
-    // 1. Process files in parallel
-    const fileData = [];
-    if (uploadedFiles.length > 0) {
-        btnSubmit.innerHTML = `<span class="spinner"></span> กำลังย่อรูปภาพ (0/${uploadedFiles.length})...`;
-
-        try {
-            const processedFiles = await Promise.all(uploadedFiles.map(async (file, index) => {
-                // อัปเดตข้อความสถานะ (ถ้าต้องการละเอียดขึ้นอาจจะต้องใช้ก้อนแยก)
-                const processedFile = file.type.startsWith('image/') ? await compressImage(file) : file;
-                const base64 = await fileToBase64(processedFile);
-
-                // อัปเดต UI เมื่อแต่ละรูปเสร็จ (แบบง่าย)
-                btnSubmit.innerHTML = `<span class="spinner"></span> กำลังเตรียมรูปที่ ${index + 1}/${uploadedFiles.length}...`;
-
-                return {
-                    name: file.name,
-                    type: processedFile.type,
-                    base64: base64
-                };
-            }));
-            fileData.push(...processedFiles);
-        } catch (err) {
-            console.error('File processing error:', err);
-            btnSubmit.innerHTML = originalContent;
-            btnSubmit.disabled = false;
-            alert('เกิดข้อผิดพลาดในการประมวลผลรูปภาพ กรุณาลองใหม่อีกครั้ง');
-            return;
-        }
+  if (!validateStep(3)) return;
+  
+  const submitBtn = document.getElementById('btn-submit');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'กำลังส่งข้อมูล... ⏳';
+  }
+  
+  try {
+    const category = document.querySelector('input[name="category"]:checked').value;
+    const departmentDisplay = document.getElementById('department-display');
+    const mappedDepartment = departmentDisplay ? (departmentDisplay.dataset.dept || '') : '';
+    const subject = document.getElementById('subject').value;
+    const details = document.getElementById('details').value;
+    const campus = document.getElementById('campus').value;
+    
+    let buildingText = document.getElementById('building').value;
+    const floorArea = document.getElementById('floor-area')?.value;
+    const landmark = document.getElementById('landmark')?.value;
+    if (floorArea) buildingText += ' / ' + floorArea;
+    if (landmark) buildingText += ' (' + landmark + ')';
+    
+    const urgency = document.querySelector('input[name="urgency"]:checked')?.value || 'ปกติ';
+    const identity = document.querySelector('input[name="identity"]:checked').value;
+    
+    const fullName = document.getElementById('full-name')?.value.trim() || '';
+    const contactInfo = document.getElementById('contact-info')?.value.trim() || '';
+    const anonContact = document.getElementById('anon-contact')?.value.trim() || '';
+    const finalContact = identity === 'เปิดเผยตัวตน' 
+      ? (contactInfo || '-') 
+      : (anonContact || '-');
+    
+    let pinHashValue = '';
+    if (identity === 'ไม่เปิดเผยตัวตน') {
+      const pin1 = document.getElementById('pin-1').value;
+      const pin2 = document.getElementById('pin-2').value;
+      const pin3 = document.getElementById('pin-3').value;
+      const pin4 = document.getElementById('pin-4').value;
+      pinHashValue = await hashPIN(pin1 + pin2 + pin3 + pin4);
     }
-
-    btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึกข้อมูลและส่งเรื่อง...';
-
-    // Collect form data
+    
+    const date = new Date();
+    const yyyymmdd = date.getFullYear().toString() + (date.getMonth() + 1).toString().padStart(2, '0') + date.getDate().toString().padStart(2, '0');
+    const random4digits = Math.floor(1000 + Math.random() * 9000).toString();
+    const refNum = `REF-${yyyymmdd}-${random4digits}`;
+    
     const formData = {
-        id: refNum,
-        topicType: document.querySelector('input[name="topicType"]:checked')?.value,
-        category: document.querySelector('input[name="category"]:checked')?.value,
-        department: (function () {
-            const dept = document.getElementById('department').value;
-            const faculty = document.getElementById('faculty').value;
-            return (dept === 'คณะ' && faculty) ? `คณะ - ${faculty}` : dept;
-        })(),
-        subject: document.getElementById('subject').value,
-        details: document.getElementById('details').value,
-        location: document.getElementById('location').value,
-        mapLink: document.getElementById('map-link').value,
-        priority: document.querySelector('input[name="priority"]:checked')?.value,
-        identity: document.querySelector('input[name="identity"]:checked')?.value,
-        fullName: document.getElementById('full-name').value || 'ไม่เปิดเผย',
-        contact: document.getElementById('contact').value || '-',
-        email: document.getElementById('user-email').value || '',
-        timestamp: now.toISOString(),
-        files: uploadedFiles.map(f => f.name),
-        fileData: fileData,
-        status: 'รอดำเนินการ',
-        adminNote: ''
+      ref_code: refNum,
+      category: category,
+      department: mappedDepartment,
+      title: subject,
+      description: details,
+      location_campus: campus,
+      location_building: buildingText,
+      urgency_level: urgency,
+      is_anonymous: identity,
+      contact_name: identity === 'เปิดเผยตัวตน' ? (fullName || 'ไม่ระบุชื่อ') : 'ไม่เปิดเผย',
+      contact_info: finalContact,
+      pin_hash: pinHashValue,
+      fileData: uploadedFiles
     };
-
-    // Save to localStorage as backup
-    saveComplaintLocal(formData);
-
-    // 2. Send to Google Sheets
-    const result = await sendToGoogleSheets(formData);
-
-    document.getElementById('ref-number').textContent = refNum;
-
-    btnSubmit.innerHTML = originalContent;
-    btnSubmit.disabled = false;
-    showPage('success-page');
-
-    if (result.local) {
-        showToast('✅ บันทึกข้อมูลในเครื่องแล้ว (ยังไม่ได้ตั้งค่า Google Sheets)');
-    } else {
-        showToast('✅ ส่งข้อมูลไปยัง Google Sheets เรียบร้อยแล้ว!');
-    }
-}
-
-// ===== LOOKUP STATUS =====
-async function lookupStatus() {
-    const refInput = document.getElementById('ref-input');
-    const resultDiv = document.getElementById('lookup-result');
-    if (!refInput || !resultDiv) return;
-
-    const refId = refInput.value.trim().toUpperCase();
-
-    if (!refId) {
-        resultDiv.innerHTML = '<div class="lookup-error">⚠️ กรุณากรอกหมายเลขอ้างอิง</div>';
-        return;
-    }
-
-    resultDiv.innerHTML = '<div class="lookup-loading"><span class="spinner spinner-dark"></span> กำลังค้นหา...</div>';
-
-    // 1. Try Google Sheets first (Live Data)
-    if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL_HERE')) {
-        try {
-            const response = await fetch(`${APPS_SCRIPT_URL}?action=lookup&refId=${encodeURIComponent(refId)}&t=${Date.now()}`);
-            const data = await response.json();
-            if (data.success) {
-                renderLookupResult(data.data, resultDiv);
-                return;
-            }
-        } catch (error) {
-            console.error('Lookup error:', error);
-            // If network error, continue to local storage
-        }
-    }
-
-    // 2. Try local storage as fallback
-    const localComplaints = getComplaints();
-    const localResult = localComplaints.find(c => c.id === refId);
-
-    if (localResult) {
-        renderLookupResult(localResult, resultDiv);
-        showToast('ℹ️ แสดงข้อมูลสำรองในเครื่อง (ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้)');
-        return;
-    }
-
-    resultDiv.innerHTML = `
-        <div class="lookup-not-found">
-            <span class="lookup-icon">🔍</span>
-            <p>ไม่พบข้อมูลสำหรับหมายเลข <strong>${refId}</strong></p>
-            <p class="lookup-hint">กรุณาตรวจสอบหมายเลขอ้างอิงอีกครั้ง</p>
-        </div>
-    `;
-}
-
-function renderLookupResult(data, container) {
-    const statusColors = {
-        'รอดำเนินการ': { bg: '#FEF3C7', color: '#92400E', icon: '⏳' },
-        'กำลังดำเนินการ': { bg: '#DBEAFE', color: '#1E40AF', icon: '🔄' },
-        'เสร็จสิ้น': { bg: '#D1FAE5', color: '#065F46', icon: '✅' }
-    };
-
-    const priorityColors = {
-        'ต่ำ': '#22c55e',
-        'ปานกลาง': '#f59e0b',
-        'สูง': '#f97316',
-        'เร่งด่วนมาก': '#ef4444'
-    };
-
-    const currentStatus = (data.status || '').toString().trim();
-    const status = statusColors[currentStatus] || statusColors['รอดำเนินการ'];
-    const pColor = priorityColors[data.priority] || '#999';
-    const dateStr = data.date || new Date(data.timestamp).toLocaleString('th-TH');
-
-    container.innerHTML = `
-        <div class="lookup-card">
-            <div class="lookup-card-header">
-                <div class="lookup-ref">
-                    <span class="lookup-ref-label">หมายเลขอ้างอิง</span>
-                    <span class="lookup-ref-id">${data.id}</span>
-                </div>
-                <div class="lookup-status" style="background:${status.bg};color:${status.color}">
-                    ${status.icon} ${data.status}
-                </div>
-            </div>
-            <div class="lookup-card-body">
-                <div class="lookup-row">
-                    <span class="lookup-label">📋 ประเภท</span>
-                    <span class="lookup-value">${data.topicType}</span>
-                </div>
-                <div class="lookup-row">
-                    <span class="lookup-label">🏛️ หน่วยงาน</span>
-                    <span class="lookup-value">${data.department}</span>
-                </div>
-                <div class="lookup-row">
-                    <span class="lookup-label">📝 หัวข้อ</span>
-                    <span class="lookup-value">${data.subject}</span>
-                </div>
-                <div class="lookup-row">
-                    <span class="lookup-label">📍 สถานที่</span>
-                    <span class="lookup-value">${data.location}</span>
-                </div>
-                <div class="lookup-row">
-                    <span class="lookup-label">🔔 ความเร่งด่วน</span>
-                    <span class="lookup-value"><span class="priority-dot" style="background:${pColor}"></span> ${data.priority}</span>
-                </div>
-                <div class="lookup-row">
-                    <span class="lookup-label">📅 วันที่แจ้ง</span>
-                    <span class="lookup-value">${dateStr}</span>
-                </div>
-                ${data.files && data.files !== '-' ? `
-                <div class="lookup-row">
-                    <span class="lookup-label">📎 ไฟล์แนบ</span>
-                    <div class="lookup-value file-links">
-                        ${data.files.split(',').map(file => {
-        const trimmedFile = file.trim();
-        // ตรวจสอบว่าเป็น URL หรือไม่ (รองรับทั้ง http และ drive.google)
-        if (trimmedFile.toLowerCase().includes('http')) {
-            return `<a href="${trimmedFile}" target="_blank" class="file-link">เปิดดูรูปภาพ 🖼️</a>`;
-        }
-        return `<span class="file-name-only">${trimmedFile}</span>`;
-    }).join(' ')}
-                    </div>
-                </div>` : ''}
-                <div class="lookup-council-reply ${data.councilReply ? 'has-reply' : 'no-reply'}">
-                    <div class="council-reply-header">
-                        <span class="council-reply-icon">💬</span>
-                        <span class="council-reply-title">การตอบกลับจากพี่สภา</span>
-                    </div>
-                    <div class="council-reply-body">
-                        ${data.councilReply 
-                            ? `<p class="council-reply-text">${data.councilReply}</p>`
-                            : `<p class="council-reply-waiting">⏳ ยังไม่มีการตอบกลับ — กรุณารอพี่สภาตรวจสอบและตอบกลับนะคะ/ครับ</p>`
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    applyLanguage(currentLanguage);
-}
-
-// ===== DASHBOARD DATA LOADING (LIVE STATS & SUCCESS STORIES) =====
-async function loadDashboardData() {
+    
+    // Fallback save
+    localStorage.setItem(`backup_${refNum}`, JSON.stringify(formData));
+    
+    // Post data
+    let response;
     try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=stats&t=${Date.now()}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const data = result.data;
-            
-            // 1. Update Basic Stats
-            const totalEl = document.querySelector('[data-count]');
-            if (totalEl) totalEl.textContent = data.total || 0;
-            
-            const solvedEl = document.getElementById('stat-done');
-            if (solvedEl) solvedEl.textContent = data.done || 0;
-
-            // 2. Update Success Stories
-            const grid = document.getElementById('stories-grid');
-            if (grid && data.recentResolved && data.recentResolved.length > 0) {
-                grid.innerHTML = data.recentResolved.map(story => `
-                    <div class="story-card">
-                        <div class="story-badge">RESOLVED</div>
-                        <div class="story-content">
-                            <h4 class="story-subject">${story.subject}</h4>
-                            <p class="story-date">${new Date(story.date).toLocaleDateString('th-TH')}</p>
-                        </div>
-                    </div>
-                `).join('');
-                document.getElementById('stories-section').style.display = 'block';
-            } else if (grid) {
-                document.getElementById('stories-section').style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.error('Failed to load dashboard data:', error);
+      response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+    } catch(err) {
+      console.warn("CORS failed, trying no-cors", err);
+      response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
     }
+    
+    showPage('success-page');
+    document.getElementById('ref-number').textContent = refNum;
+    
+    clearDraft();
+    
+    const pinReminder = document.getElementById('pin-reminder');
+    if (pinReminder) {
+      if (identity === 'ไม่เปิดเผยตัวตน') {
+        pinReminder.classList.remove('hidden');
+      } else {
+        pinReminder.classList.add('hidden');
+      }
+    }
+    
+  } catch (error) {
+    console.error('Submission error', error);
+    showToast('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'ส่งเรื่องร้องเรียน 📤';
+    }
+  }
 }
 
-// ===== RESET FORM =====
+// --- 15. Success Page Actions ---
+function copyRefNumber() {
+  const refNum = document.getElementById('ref-number').textContent;
+  navigator.clipboard.writeText(refNum).then(() => {
+    showToast('คัดลอกหมายเลขอ้างอิงแล้ว');
+  });
+}
+
+function copyTrackingLink() {
+  const refNum = document.getElementById('ref-number').textContent;
+  const link = `${window.location.origin}${window.location.pathname}?ref=${refNum}`;
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('คัดลอกลิงก์สำหรับติดตามสถานะแล้ว');
+  });
+}
+
+function saveCardAsImage() {
+  const card = document.getElementById('ref-card');
+  if (!card) return;
+  
+  if (typeof html2canvas !== 'undefined') {
+    html2canvas(card, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `PSU-StudentVoice-${document.getElementById('ref-number').textContent}.png`;
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  } else {
+    showToast('ไม่สามารถบันทึกรูปภาพได้ (ไม่พบไลบรารี html2canvas)');
+  }
+}
+
+// --- 16. Tracking Page ---
+async function lookupTracking() {
+  const refInput = document.getElementById('track-ref-input');
+  const refId = refInput ? refInput.value.trim().toUpperCase() : '';
+  const pin1 = document.getElementById('track-pin-1')?.value || '';
+  const pin2 = document.getElementById('track-pin-2')?.value || '';
+  const pin3 = document.getElementById('track-pin-3')?.value || '';
+  const pin4 = document.getElementById('track-pin-4')?.value || '';
+  
+  if (!refId) {
+    showToast('กรุณาระบุหมายเลขอ้างอิง');
+    return;
+  }
+  
+  const searchBtn = document.querySelector('#tracking-page button[onclick="lookupTracking()"]');
+  if (searchBtn) {
+    searchBtn.disabled = true;
+    searchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> กำลังค้นหา...';
+  }
+  
+  try {
+    const pin = (pin1 + pin2 + pin3 + pin4).trim();
+    const pinHash = pin.length === 4 ? await hashPIN(pin) : '';
+    
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=lookup&refId=${encodeURIComponent(refId)}&pinHash=${encodeURIComponent(pinHash)}&t=${Date.now()}`);
+    const data = await res.json();
+    
+    const trackResult = document.getElementById('track-result');
+    
+    if ((data.success || data.status === 'success') && data.data) {
+      const d = data.data;
+      
+      let html = `<div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-100">`;
+      html += `<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6 pb-4 border-b">
+                 <div>
+                   <span class="text-xs font-bold text-primary-600 uppercase tracking-widest">สถานะการร้องเรียน</span>
+                   <h3 class="text-2xl font-black text-slate-800">${d.ref_code || refId}</h3>
+                 </div>
+                 <div class="text-xs text-slate-400">แจ้งเมื่อ: ${d.created_at || '-'}</div>
+               </div>`;
+      
+      let daysPassed = 0;
+      if (d.days_passed !== undefined && d.days_passed !== '-') {
+        daysPassed = parseInt(d.days_passed, 10) || 0;
+      }
+      
+      let badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      if (daysPassed > 3 && daysPassed <= 7) badgeClass = 'bg-amber-100 text-amber-800 border-amber-200';
+      else if (daysPassed > 7) badgeClass = 'bg-rose-100 text-rose-800 border-rose-200';
+      
+      if (d.status !== 'เสร็จสิ้น') {
+        html += `<div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border ${badgeClass} mb-6">
+                   <i class="fa-regular fa-clock"></i> <span>รอดำเนินการมาแล้ว ${daysPassed} วัน</span>
+                 </div>`;
+      }
+      
+      // Timeline Stepper
+      const statusList = ['รับเรื่องแล้ว', 'กำลังดำเนินการ', 'เสร็จสิ้น'];
+      let activeIndex = 0;
+      if (d.status === 'กำลังดำเนินการ') activeIndex = 1;
+      else if (d.status === 'เสร็จสิ้น') activeIndex = 2;
+      
+      html += `<div class="mb-8">
+                 <div class="flex justify-between items-center relative z-10">`;
+                 
+      statusList.forEach((s, idx) => {
+        const isActive = idx <= activeIndex;
+        const isCurrent = idx === activeIndex;
+        html += `
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white ${isActive ? 'bg-primary-600 shadow-md' : 'bg-slate-200 text-slate-400'} ${isCurrent ? 'ring-4 ring-primary-100' : ''} mb-2 text-xs font-bold transition-all">
+              ${isActive ? '<i class="fa-solid fa-check"></i>' : (idx + 1)}
+            </div>
+            <span class="text-xs font-semibold ${isActive ? 'text-primary-600' : 'text-slate-400'}">${s}</span>
+          </div>
+        `;
+      });
+      html += `  </div>
+               </div>`;
+      
+      html += `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6 bg-slate-50 p-5 rounded-xl border border-slate-200">
+          <div><span class="text-slate-500">หมวดหมู่:</span> <span class="font-semibold text-slate-800">${d.category || '-'}</span></div>
+          <div><span class="text-slate-500">หัวข้อ:</span> <span class="font-semibold text-slate-800">${d.title || '-'}</span></div>
+          <div><span class="text-slate-500">สถานที่:</span> <span class="font-semibold text-slate-800">${d.location_campus || ''} ${d.location_building ? '- ' + d.location_building : ''}</span></div>
+          <div><span class="text-slate-500">ความเร่งด่วน:</span> <span class="font-semibold text-slate-800">${d.urgency_level || '-'}</span></div>
+          ${d.description ? `<div class="col-span-full pt-2 border-t border-slate-200"><span class="text-slate-500 block mb-1">รายละเอียด:</span> <p class="text-slate-700 whitespace-pre-wrap">${d.description}</p></div>` : ''}
+        </div>
+      `;
+      
+      if (d.admin_reply) {
+        html += `
+          <div class="bg-primary-50 border-l-4 border-primary-500 p-4 mb-6 rounded-r-xl">
+            <h4 class="font-bold text-primary-900 mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-comment-dots text-primary-600"></i> ข้อความตอบกลับจากเจ้าหน้าที่:
+            </h4>
+            <p class="text-slate-700 whitespace-pre-wrap text-sm leading-relaxed">${d.admin_reply}</p>
+          </div>
+        `;
+      }
+      
+      // Attachments
+      const attachments = d.attachment_url ? d.attachment_url.split(',').map(u => u.trim()).filter(Boolean) : [];
+      if (attachments.length > 0) {
+        html += `<div class="mb-6">
+                   <h4 class="font-bold text-sm text-slate-700 mb-2">ไฟล์หลักฐานแนบ:</h4>
+                   <div class="flex flex-wrap gap-2">`;
+        attachments.forEach((url, i) => {
+          html += `<a href="${url}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-primary-700 rounded-lg text-xs font-medium transition-colors">
+                     <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูไฟล์แนบที่ ${i + 1}
+                   </a>`;
+        });
+        html += `   </div>
+                 </div>`;
+      }
+      
+      if (d.status === 'เสร็จสิ้น') {
+        html += `
+          <div id="rating-section" class="mt-8 border-t border-slate-200 pt-6 text-center">
+            <h4 class="font-bold text-slate-800 mb-3">กรุณาประเมินความพึงพอใจการแก้ปัญหา</h4>
+            <div class="flex justify-center gap-2 mb-5 text-3xl">
+              ${[1,2,3,4,5].map(i => `<button onclick="selectRating(${i})" class="rating-star hover:scale-125 transition-transform cursor-pointer" data-val="${i}">⭐</button>`).join('')}
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center gap-3">
+              <button onclick="submitRating(true, '${d.ref_code}')" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all shadow-md shadow-emerald-500/20 cursor-pointer">✅ แก้ไขเรียบร้อยแล้ว</button>
+              <button onclick="submitRating(false, '${d.ref_code}')" class="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-all shadow-md shadow-rose-500/20 cursor-pointer">❌ ปัญหายังไม่ได้รับการแก้ไข</button>
+            </div>
+          </div>
+        `;
+      }
+      
+      html += `</div>`;
+      trackResult.innerHTML = html;
+      trackResult.classList.remove('hidden');
+    } else {
+      const errorMsg = data.error === 'Invalid PIN' 
+        ? '⚠️ รหัส PIN 4 หลักไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง' 
+        : (data.error === 'Not found' ? '⚠️ ไม่พบข้อมูลหมายเลขอ้างอิงนี้' : (data.error || 'ไม่พบข้อมูล หรือรหัส PIN ไม่ถูกต้อง'));
+      showToast(errorMsg);
+      trackResult.classList.add('hidden');
+    }
+  } catch (error) {
+    console.error(error);
+    showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง');
+  } finally {
+    if (searchBtn) {
+      searchBtn.disabled = false;
+      searchBtn.innerHTML = 'ค้นหาสถานะ';
+    }
+  }
+}
+
+let currentRating = 0;
+window.selectRating = function(val) {
+  currentRating = val;
+  const stars = document.querySelectorAll('.rating-star');
+  stars.forEach(star => {
+    if (parseInt(star.dataset.val) <= val) {
+      star.style.filter = 'grayscale(0%)';
+      star.style.opacity = '1';
+    } else {
+      star.style.filter = 'grayscale(100%)';
+      star.style.opacity = '0.4';
+    }
+  });
+}
+
+window.submitRating = async function(resolved, refCode) {
+  if (currentRating === 0) {
+    showToast('กรุณาเลือกดาวประเมินความพึงพอใจ');
+    return;
+  }
+  try {
+    // Fire and forget rating to apps script
+    fetch(`${APPS_SCRIPT_URL}?action=rate&refId=${refCode}&rating=${currentRating}&resolved=${resolved}`, { mode: 'no-cors' });
+    const ratingSection = document.getElementById('rating-section');
+    if (ratingSection) {
+      ratingSection.innerHTML = '<div class="text-green-600 font-bold text-lg">ขอบคุณสำหรับการประเมิน! 🎉</div>';
+    }
+    showToast('ส่งผลประเมินเรียบร้อยแล้ว');
+  } catch(e) {
+    showToast('ส่งผลประเมินเรียบร้อยแล้ว (ออฟไลน์)');
+  }
+}
+
+// --- 17. Intro Page Status Lookup ---
+async function lookupStatus() {
+  const refInput = document.getElementById('ref-input') || document.getElementById('quick-track-input');
+  const refId = refInput ? refInput.value.trim().toUpperCase() : '';
+  if (!refId) {
+    showToast('กรุณาระบุหมายเลขอ้างอิง');
+    return;
+  }
+  
+  const searchBtn = document.querySelector('#intro-page button[onclick="lookupStatus()"]');
+  if (searchBtn) {
+    searchBtn.disabled = true;
+    searchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ค้นหา...';
+  }
+  
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=lookup&refId=${encodeURIComponent(refId)}`);
+    const result = await res.json();
+    
+    if (result.success && result.data) {
+      document.getElementById('track-ref-input').value = refId;
+      showPage('tracking-page');
+      lookupTracking();
+    } else {
+      showToast(result.message || 'ไม่พบข้อมูลหมายเลขอ้างอิงนี้');
+    }
+  } catch (error) {
+    console.error(error);
+    showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+  } finally {
+    if (searchBtn) {
+      searchBtn.disabled = false;
+      searchBtn.innerHTML = 'ค้นหาสถานะ';
+    }
+  }
+}
+
+// --- 18. Live Stats Loading ---
+async function loadLiveStats() {
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=stats&t=${Date.now()}`);
+    const result = await res.json();
+    
+    if (result.success && result.data) {
+      const stats = result.data;
+      const elTotal = document.getElementById('stat-total');
+      const elDone = document.getElementById('stat-done');
+      
+      if (elTotal) elTotal.setAttribute('data-count', stats.total || 0);
+      if (elDone) elDone.setAttribute('data-count', stats.done || 0);
+      
+      animateCounters();
+      
+      const storiesGrid = document.getElementById('stories-grid');
+      if (storiesGrid) {
+        if (stats.recentResolved && stats.recentResolved.length > 0) {
+          storiesGrid.innerHTML = '';
+          stats.recentResolved.forEach(item => {
+            storiesGrid.innerHTML += `
+              <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">✅ แก้ไขแล้ว</span>
+                  <span class="text-xs text-slate-400">${item.date || '-'}</span>
+                </div>
+                <h4 class="font-bold text-slate-800 text-base mb-1 line-clamp-1">${item.subject || item.title || '-'}</h4>
+                <p class="text-xs text-slate-500">หมายเลขอ้างอิง: ${item.id || item.ref_code || '-'}</p>
+              </div>
+            `;
+          });
+        } else {
+          storiesGrid.innerHTML = `
+            <div class="col-span-full text-center py-8 text-slate-400 bg-white rounded-2xl border border-slate-100">
+              <i class="fa-solid fa-sparkles text-2xl mb-2 text-slate-300"></i>
+              <p>ยินดีต้อนรับสู่ระบบ PSU Student Voice — กำลังเปิดรับเรื่องร้องเรียนและข้อเสนอแนะ</p>
+            </div>
+          `;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load stats', error);
+  }
+}
+
+function animateCounters() {
+  const counters = document.querySelectorAll('[data-count]');
+  counters.forEach(counter => {
+    const target = parseInt(counter.getAttribute('data-count'), 10) || 0;
+    if (target === 0) {
+      counter.innerText = '0';
+      return;
+    }
+    const duration = 1500;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      counter.innerText = Math.floor(eased * target);
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      } else {
+        counter.innerText = target;
+      }
+    }
+    requestAnimationFrame(update);
+  });
+}
+
+// --- 19. Toast Notifications ---
+function showToast(message, duration = 3000) {
+  const existing = document.querySelector('.toast-notification');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl z-50 transition-all duration-300 opacity-0 translate-y-4';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.classList.remove('opacity-0', 'translate-y-4'); });
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-4');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// --- 20. URL Auto-Lookup ---
+function checkUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if (ref) {
+    const trackInput = document.getElementById('track-ref-input');
+    if (trackInput) {
+      trackInput.value = ref;
+      showPage('tracking-page');
+    }
+  }
+}
+
+// --- 21. Form Reset ---
 function resetForm() {
-    const form = document.getElementById('feedback-form');
-    if (form) form.reset();
-    const idFields = document.getElementById('identity-fields');
-    if (idFields) idFields.style.display = 'none';
-    uploadedFiles = [];
-    renderFileList();
-    if (charCountEl) charCountEl.textContent = '0';
-    currentSection = 1;
-    showSection(1);
-    showPage('form-page');
+  const inputs = document.querySelectorAll('#form-page input[type="text"], #form-page input[type="password"], #form-page textarea');
+  inputs.forEach(input => input.value = '');
+  
+  const selects = document.querySelectorAll('#form-page select');
+  selects.forEach(select => select.selectedIndex = 0);
+  const campusSelect = document.getElementById('campus');
+  if (campusSelect) campusSelect.value = 'วิทยาเขตหาดใหญ่';
+  handleCampusChange();
+  
+  const defaultCategory = document.querySelector('input[name="category"]');
+  if (defaultCategory) defaultCategory.checked = true;
+  
+  const defaultIdentity = document.querySelector('input[name="identity"]');
+  if (defaultIdentity) defaultIdentity.checked = true;
+  
+  uploadedFiles = [];
+  renderFileList();
+  
+  const deptDisplay = document.getElementById('department-display');
+  if (deptDisplay) deptDisplay.classList.add('hidden');
+  
+  handleIdentityChange();
+  
+  clearDraft();
+  clearErrors();
+  showStep(1);
+  showPage('form-page');
 }
 
-// ===== TOAST =====
-function showToast(message) {
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400);
-    }, 3000);
+// --- 22. Language Toggle (Simple) ---
+function toggleLanguage() {
+  showToast('Language switching coming soon / ระบบเปลี่ยนภาษากำลังพัฒนา');
 }
 
-// ===== INPUT FOCUS ANIMATIONS =====
-document.querySelectorAll('.text-input, .textarea-input, select').forEach(input => {
-    input.addEventListener('focus', function () {
-        this.closest('.field-group')?.classList.add('field-focused');
-    });
-    input.addEventListener('blur', function () {
-        this.closest('.field-group')?.classList.remove('field-focused');
-    });
-});
-
-// ===== KEYBOARD NAVIGATION =====
-document.addEventListener('keydown', (e) => {
-    const formPage = document.getElementById('form-page');
-    if (formPage && formPage.classList.contains('active')) {
-        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-            if (currentSection === totalSections) {
-                submitForm();
-            } else {
-                nextSection();
-            }
-        }
-    }
-});
-
+// --- 23. DOMContentLoaded Handler ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadDashboardData();
-
-    // Auto-lookup from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const refId = urlParams.get('ref');
-    if (refId) {
-        showPage('intro-page'); // Ensure we are on intro
-        const refInput = document.getElementById('ref-input');
-        if (refInput) {
-            refInput.value = refId;
-            lookupStatus();
-        }
-    }
+  checkPDPA();
+  initParticles();
+  loadLiveStats();
+  
+  const pdpaCheckbox = document.getElementById('pdpa-checkbox');
+  const pdpaBtn = document.getElementById('pdpa-accept-btn');
+  if (pdpaCheckbox && pdpaBtn) {
+    pdpaCheckbox.addEventListener('change', (e) => {
+      const isChecked = e.target.checked;
+      pdpaBtn.disabled = !isChecked;
+      if (isChecked) {
+        pdpaBtn.className = "w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-500/30 cursor-pointer transition-all";
+      } else {
+        pdpaBtn.className = "w-full py-4 bg-slate-200 text-slate-400 font-bold rounded-xl cursor-not-allowed transition-all";
+      }
+    });
+  }
+  
+  const categoryRadios = document.querySelectorAll('input[name="category"]');
+  categoryRadios.forEach(radio => radio.addEventListener('change', handleCategoryChange));
+  
+  const campusSelect = document.getElementById('campus');
+  if (campusSelect) {
+    campusSelect.value = 'วิทยาเขตหาดใหญ่';
+    campusSelect.addEventListener('change', handleCampusChange);
+  }
+  handleCampusChange();
+  
+  const identityRadios = document.querySelectorAll('input[name="identity"]');
+  identityRadios.forEach(radio => radio.addEventListener('change', handleIdentityChange));
+  
+  const detailsInput = document.getElementById('details');
+  if (detailsInput) {
+    detailsInput.addEventListener('input', updateCharCount);
+  }
+  
+  setupPinInputs();
+  setupFileUpload();
+  setupDraftAutoSave();
+  restoreDraft();
+  checkUrlParams();
+  
+  window.acceptPDPA = acceptPDPA;
+  window.showPage = showPage;
+  window.nextStep = nextStep;
+  window.prevStep = prevStep;
+  window.submitForm = submitForm;
+  window.copyRefNumber = copyRefNumber;
+  window.copyTrackingLink = copyTrackingLink;
+  window.saveCardAsImage = saveCardAsImage;
+  window.lookupTracking = lookupTracking;
+  window.lookupStatus = lookupStatus;
+  window.resetForm = resetForm;
+  window.toggleLanguage = toggleLanguage;
 });
-
-// Reverted: Admin Dashboard Logic Removed

@@ -1,99 +1,83 @@
-// ===== CONFIG =====
-// ดึง URL จาก script.js หรือระบุโดยตรง
-const DASHBOARD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyh_ouXE982PHgdG8BXLwEjTRl9LCF-XQhc9KocRfxDaXapEnubpcO1jE6GsS77Qp3p/exec';
+const DASHBOARD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiOSdbWlF_O-xXDVqA7ZJUs1yKfylZTuLWkfg6zbGIXxkuiouIC7uEl45FcGDICiA/exec';
 
-// ===== INITIALIZE =====
+let typeChartInstance = null;
+let statusChartInstance = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     initParticles();
     fetchStats();
+    
+    // Update time
+    const now = new Date();
+    document.getElementById('last-update').textContent = now.toLocaleTimeString('th-TH') + ' น.';
 });
 
-// ===== FETCH DATA =====
 async function fetchStats() {
-    const loading = document.getElementById('loading');
-
     try {
-        const response = await fetch(`${DASHBOARD_SCRIPT_URL}?action=stats&t=${Date.now()}`);
+        const response = await fetch(`${DASHBOARD_SCRIPT_URL}?action=stats`);
+        if (!response.ok) throw new Error('Network error');
         const result = await response.json();
-
-        if (result.success) {
+        
+        if (result.success && result.data) {
             updateDashboard(result.data);
-            const now = new Date();
-            document.getElementById('last-update').textContent = now.toLocaleTimeString('th-TH');
         } else {
-            console.error('Failed to fetch stats:', result.message);
-            alert('ไม่สามารถโหลดข้อมูลได้: ' + result.message);
+            showFallbackData();
         }
     } catch (error) {
-        console.error('Error fetching stats:', error);
-        // Fallback for local testing
+        console.error('Error fetching dashboard data:', error);
         showFallbackData();
     } finally {
-        if (loading) loading.style.opacity = '0';
-        setTimeout(() => loading.style.display = 'none', 500);
+        document.getElementById('loading').style.display = 'none';
     }
 }
 
-// ===== UPDATE UI =====
 function updateDashboard(data) {
-    // Basic Stats
     animateValue('total-count', data.total || 0);
     animateValue('pending-count', (data.pending || 0) + (data.processing || 0));
     animateValue('done-count', data.done || 0);
-
-    // Render Charts
-    if (data.types) renderTypeChart(data.types);
+    
+    renderTypeChart(data.types || {});
     renderStatusChart(data);
 }
 
-function animateValue(id, value) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
+function animateValue(id, end) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let start = 0;
     const duration = 1500;
-    const start = 0;
-    const end = parseInt(value);
-    const startTime = performance.now();
-
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        const current = Math.floor(ease * end);
-        el.textContent = current.toLocaleString();
-
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start);
         if (progress < 1) {
-            requestAnimationFrame(update);
+            window.requestAnimationFrame(step);
+        } else {
+            obj.innerHTML = end;
         }
-    }
-    requestAnimationFrame(update);
+    };
+    window.requestAnimationFrame(step);
 }
 
-// ===== CHARTS =====
 function renderTypeChart(typeCounts) {
     const ctx = document.getElementById('typeChart').getContext('2d');
+    
     const labels = Object.keys(typeCounts);
-    const values = Object.values(typeCounts);
-
-    new Chart(ctx, {
+    const data = Object.values(typeCounts);
+    
+    if (typeChartInstance) typeChartInstance.destroy();
+    
+    typeChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
                 label: 'จำนวนเรื่อง',
-                data: values,
-                backgroundColor: [
-                    'rgba(37, 99, 235, 0.7)',
-                    'rgba(16, 185, 129, 0.7)',
-                    'rgba(245, 158, 11, 0.7)',
-                    'rgba(139, 92, 246, 0.7)',
-                    'rgba(100, 116, 139, 0.7)'
-                ],
-                borderColor: [
-                    '#1e40af', '#059669', '#d97706', '#7c3aed', '#475569'
-                ],
-                borderWidth: 0,
-                borderRadius: 12
+                data: data,
+                backgroundColor: 'rgba(10, 42, 102, 0.7)',
+                borderColor: 'rgba(10, 42, 102, 1)',
+                borderWidth: 1,
+                borderRadius: 4
             }]
         },
         options: {
@@ -103,15 +87,7 @@ function renderTypeChart(typeCounts) {
                 legend: { display: false }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(0,0,0,0.03)', borderDash: [5, 5] },
-                    ticks: { color: '#64748b', font: { family: 'Outfit', weight: 600 } }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: '#64748b', font: { family: 'Outfit', weight: 600 } }
-                }
+                y: { beginAtZero: true, ticks: { precision: 0 } }
             }
         }
     });
@@ -119,114 +95,102 @@ function renderTypeChart(typeCounts) {
 
 function renderStatusChart(data) {
     const ctx = document.getElementById('statusChart').getContext('2d');
-
-    new Chart(ctx, {
+    
+    if (statusChartInstance) statusChartInstance.destroy();
+    
+    statusChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['รอดำเนินการ', 'กำลังดำเนินการ', 'เสร็จสิ้น'],
+            labels: ['เสร็จสิ้น', 'รอดำเนินการ', 'กำลังดำเนินการ'],
             datasets: [{
+                data: [data.done || 0, data.pending || 0, data.processing || 0],
                 backgroundColor: [
-                    'rgba(245, 158, 11, 0.8)',
-                    'rgba(37, 99, 235, 0.8)',
-                    'rgba(16, 185, 129, 0.8)'
+                    '#10B981', // green
+                    '#F59E0B', // yellow
+                    '#3B82F6'  // blue
                 ],
-                data: [data.pending || 0, data.processing || 0, data.done || 0],
-                borderColor: '#ffffff',
-                borderWidth: 4,
-                hoverOffset: 20
+                borderWidth: 0,
+                hoverOffset: 4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '75%',
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: '#64748b', padding: 25, font: { family: 'Outfit', weight: 600 } }
-                }
-            }
+                legend: { position: 'bottom' }
+            },
+            cutout: '70%'
         }
-    });
-}
-
-// ===== PARTICLES (Copied from script.js for consistency) =====
-function initParticles() {
-    const canvas = document.getElementById('particles-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-
-    function createParticles() {
-        particles = [];
-        const count = Math.floor((canvas.width * canvas.height) / 15000);
-        for (let i = 0; i < count; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 2 + 0.5,
-                speedX: (Math.random() - 0.5) * 0.4,
-                speedY: (Math.random() - 0.5) * 0.4,
-                opacity: Math.random() * 0.4 + 0.1
-            });
-        }
-    }
-
-    function drawParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(37, 99, 235, ${p.opacity})`;
-            ctx.fill();
-
-            p.x += p.speedX;
-            p.y += p.speedY;
-
-            if (p.x < 0) p.x = canvas.width;
-            if (p.x > canvas.width) p.x = 0;
-            if (p.y < 0) p.y = canvas.height;
-            if (p.y > canvas.height) p.y = 0;
-        });
-
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 120) {
-                    ctx.beginPath();
-                    ctx.strokeStyle = `rgba(37, 99, 235, ${0.1 * (1 - dist / 120)})`;
-                    ctx.lineWidth = 0.5;
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.stroke();
-                }
-            }
-        }
-        requestAnimationFrame(drawParticles);
-    }
-
-    resize();
-    createParticles();
-    drawParticles();
-    window.addEventListener('resize', () => {
-        resize();
-        createParticles();
     });
 }
 
 function showFallbackData() {
     updateDashboard({
-        total: 10,
-        pending: 5,
-        inProgress: 2,
-        done: 3,
-        types: { 'ข้อร้องเรียน': 4, 'ข้อเสนอแนะ': 3, 'แจ้งปัญหา': 2, 'อื่นๆ': 1 }
+        total: 15,
+        done: 5,
+        pending: 8,
+        processing: 2,
+        types: {
+            "วิชาการ/การเรียนการสอน": 5,
+            "สิ่งอำนวยความสะดวก": 7,
+            "กิจกรรมนักศึกษา": 2,
+            "อื่นๆ": 1
+        }
+    });
+}
+
+function initParticles() {
+    const canvas = document.getElementById('particles-js');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particlesArray = [];
+    const numberOfParticles = 50;
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 3 + 1;
+            this.speedX = Math.random() * 1 - 0.5;
+            this.speedY = Math.random() * 1 - 0.5;
+            this.color = 'rgba(10, 42, 102, 0.1)';
+        }
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.size > 0.2) this.size -= 0.01;
+            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function init() {
+        for (let i = 0; i < numberOfParticles; i++) {
+            particlesArray.push(new Particle());
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].update();
+            particlesArray[i].draw();
+        }
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+    
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
     });
 }
